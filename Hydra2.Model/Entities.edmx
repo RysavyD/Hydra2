@@ -1,0 +1,227 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="Hydra2Model.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="River">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="60" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Sample">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Id_Station" Type="int" Nullable="false" />
+          <Property Name="TimeStamp" Type="datetime" Nullable="false" />
+          <Property Name="Level" Type="real" />
+          <Property Name="Flow" Type="real" />
+          <Property Name="Temperature" Type="real" />
+        </EntityType>
+        <EntityType Name="Station">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Spot" Type="nvarchar" MaxLength="60" Nullable="false" />
+          <Property Name="Spa_val" Type="int" Nullable="false" />
+          <Property Name="Spa0" Type="real" />
+          <Property Name="Spa1" Type="real" />
+          <Property Name="Spa2" Type="real" />
+          <Property Name="Spa3" Type="real" />
+          <Property Name="Spa3e" Type="real" />
+          <Property Name="Type" Type="int" Nullable="false" />
+          <Property Name="Link" Type="nvarchar" MaxLength="255" Nullable="false" />
+          <Property Name="Id_River" Type="int" Nullable="false" />
+          <Property Name="DownLoadType" Type="int" Nullable="false" />
+        </EntityType>
+        <Association Name="FK_Sample_Station">
+          <End Role="Station" Type="Self.Station" Multiplicity="1" />
+          <End Role="Sample" Type="Self.Sample" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Station">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Sample">
+              <PropertyRef Name="Id_Station" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Station_River">
+          <End Role="River" Type="Self.River" Multiplicity="1" />
+          <End Role="Station" Type="Self.Station" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="River">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Station">
+              <PropertyRef Name="Id_River" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="Hydra2ModelStoreContainer">
+          <EntitySet Name="River" EntityType="Self.River" Schema="Hydra" store:Type="Tables" />
+          <EntitySet Name="Sample" EntityType="Self.Sample" Schema="Hydra" store:Type="Tables" />
+          <EntitySet Name="Station" EntityType="Self.Station" Schema="Hydra" store:Type="Tables" />
+          <AssociationSet Name="FK_Sample_Station" Association="Self.FK_Sample_Station">
+            <End Role="Station" EntitySet="Station" />
+            <End Role="Sample" EntitySet="Sample" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Station_River" Association="Self.FK_Station_River">
+            <End Role="River" EntitySet="River" />
+            <End Role="Station" EntitySet="Station" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="Hydra2Model" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityContainer Name="Hydra2Entities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="River" EntityType="Hydra2Model.River" />
+          <EntitySet Name="Station" EntityType="Hydra2Model.Station" />
+          <AssociationSet Name="FK_Station_River" Association="Hydra2Model.FK_Station_River">
+            <End Role="River" EntitySet="River" />
+            <End Role="Station" EntitySet="Station" />
+          </AssociationSet>
+          <EntitySet Name="Sample" EntityType="Hydra2Model.Sample" />
+          <AssociationSet Name="FK_Sample_Station" Association="Hydra2Model.FK_Sample_Station">
+            <End Role="Station" EntitySet="Station" />
+            <End Role="Sample" EntitySet="Sample" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="River">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="60" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="Station" Relationship="Hydra2Model.FK_Station_River" FromRole="River" ToRole="Station" />
+        </EntityType>
+        <EntityType Name="Station">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Spot" Type="String" Nullable="false" MaxLength="60" FixedLength="false" Unicode="true" />
+          <Property Name="Spa_val" Type="Int32" Nullable="false" />
+          <Property Name="Spa0" Type="Single" />
+          <Property Name="Spa1" Type="Single" />
+          <Property Name="Spa2" Type="Single" />
+          <Property Name="Spa3" Type="Single" />
+          <Property Name="Spa3e" Type="Single" />
+          <Property Name="Type" Type="Int32" Nullable="false" />
+          <Property Name="Link" Type="String" Nullable="false" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="Id_River" Type="Int32" Nullable="false" />
+          <Property Name="DownLoadType" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="River" Relationship="Hydra2Model.FK_Station_River" FromRole="Station" ToRole="River" />
+          <NavigationProperty Name="Sample" Relationship="Hydra2Model.FK_Sample_Station" FromRole="Station" ToRole="Sample" />
+        </EntityType>
+        <Association Name="FK_Station_River">
+          <End Type="Hydra2Model.River" Role="River" Multiplicity="1" />
+          <End Type="Hydra2Model.Station" Role="Station" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="River">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Station">
+              <PropertyRef Name="Id_River" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="Sample">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Id_Station" Type="Int32" Nullable="false" />
+          <Property Name="TimeStamp" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="Level" Type="Single" />
+          <Property Name="Flow" Type="Single" />
+          <Property Name="Temperature" Type="Single" />
+          <NavigationProperty Name="Station" Relationship="Hydra2Model.FK_Sample_Station" FromRole="Sample" ToRole="Station" />
+        </EntityType>
+        <Association Name="FK_Sample_Station">
+          <End Type="Hydra2Model.Station" Role="Station" Multiplicity="1" />
+          <End Type="Hydra2Model.Sample" Role="Sample" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Station">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Sample">
+              <PropertyRef Name="Id_Station" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="Hydra2ModelStoreContainer" CdmEntityContainer="Hydra2Entities">
+          <EntitySetMapping Name="River">
+            <EntityTypeMapping TypeName="Hydra2Model.River">
+              <MappingFragment StoreEntitySet="River">
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Station">
+            <EntityTypeMapping TypeName="Hydra2Model.Station">
+              <MappingFragment StoreEntitySet="Station">
+                <ScalarProperty Name="DownLoadType" ColumnName="DownLoadType" />
+                <ScalarProperty Name="Id_River" ColumnName="Id_River" />
+                <ScalarProperty Name="Link" ColumnName="Link" />
+                <ScalarProperty Name="Type" ColumnName="Type" />
+                <ScalarProperty Name="Spa3e" ColumnName="Spa3e" />
+                <ScalarProperty Name="Spa3" ColumnName="Spa3" />
+                <ScalarProperty Name="Spa2" ColumnName="Spa2" />
+                <ScalarProperty Name="Spa1" ColumnName="Spa1" />
+                <ScalarProperty Name="Spa0" ColumnName="Spa0" />
+                <ScalarProperty Name="Spa_val" ColumnName="Spa_val" />
+                <ScalarProperty Name="Spot" ColumnName="Spot" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Sample">
+            <EntityTypeMapping TypeName="Hydra2Model.Sample">
+              <MappingFragment StoreEntitySet="Sample">
+                <ScalarProperty Name="Temperature" ColumnName="Temperature" />
+                <ScalarProperty Name="Flow" ColumnName="Flow" />
+                <ScalarProperty Name="Level" ColumnName="Level" />
+                <ScalarProperty Name="TimeStamp" ColumnName="TimeStamp" />
+                <ScalarProperty Name="Id_Station" ColumnName="Id_Station" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="false" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

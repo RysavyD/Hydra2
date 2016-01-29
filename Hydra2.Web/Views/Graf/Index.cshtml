@@ -1,0 +1,482 @@
+﻿@model Hydra2.Web.Models.GrafViewModel
+
+@{
+    ViewBag.Title = "Graf";
+}
+
+<link rel="stylesheet" href="~/Content/daterangepicker/daterangepicker.css" />
+
+<div style="margin-top: 2em;" class="row">
+    <div class="col-md-3 border">
+        <h4>Tok</h4>
+        @Html.DropDownList("river", Model.Rivers)
+    </div>
+    <div class="col-md-3 border">
+        <h4>Stanice</h4>
+        <select id="spot"></select>
+    </div>
+    <div class="col-md-3 rangeinput border">
+        <h4>Začátek</h4>
+        <input class="form-control" id="start" type="text" value="01/01/2015">
+        <i class="glyphicon glyphicon-calendar fa fa-calendar" style="position: absolute; bottom: 20px; right: 24px; top:auto; cursor: pointer;"></i>
+    </div>
+    <div class="col-md-3 rangeinput border">
+        <h4>Konec</h4>
+        <input class="form-control" id="stop" type="text" value="01/01/2016">
+        <i class="glyphicon glyphicon-calendar fa fa-calendar" style="position: absolute; bottom: 20px; right: 24px; top:auto; cursor: pointer;"></i>
+    </div>
+ </div>
+ <div style="margin-top: 2em;" class="row">
+    <div class="col-md-3" border>
+        <h4>Sledované veličiny</h4>
+        <input type="radio" name="type" value="h" title="h" checked="checked" /> Hladina
+        <input type="radio" name="type" value="Q" /> Průtok
+        <input type="radio" name="type" value="t" /> Teplota
+    </div>
+     <div class="col-md-3 border">
+         <div style="padding-top: 10px;">
+             <div id="Reload" class="btn btn-success btn-lg">Načíst data</div>
+         </div>
+     </div>
+</div>
+<div style="margin-top: 2em; display: none;" class="row" id="riverInformation">
+    <div class="col-md-12">
+        <table style="width:100%">
+            <tbody>
+                <tr>
+                    <th colspan="4">Limity pro stupně povodňové aktivity</th>
+                </tr>
+                <tr>
+                    <th>1. stupeň</th>
+                    <td><strong>H</strong> = <span id="river1"></span> [cm]</td>
+                    <td style="width:20px;"><div style="background-color:#00FF00;" class="informBox"></div></td>
+                    <td>1.SPA (bdělost)</td>
+                </tr>
+                <tr>
+                    <th>2. stupeň</th>
+                    <td><strong>H</strong> = <span id="river2"></span> [cm]</td>
+                    <td style="width:20px;"><div style="background-color:#FFFF00;" class="informBox"></div></td>
+                    <td>2.SPA (pohotovost)</td>
+                </tr>
+                <tr>
+                    <th>3. stupeň</th>
+                    <td><strong>H</strong> = <span id="river3"></span> [cm]</td>
+                    <td style="width:20px;"><div style="background-color:#FF0000;" class="informBox"></div></td>
+                    <td>3.SPA (ohrožení)</td>
+                </tr>
+                <tr>
+                    <th>3. stupeň</th>
+                    <td><strong>H</strong> = <span id="river3e"></span> [cm]</td>
+                    <td style="width:20px;"><div style="background-color:#FF0000;" class="informBox"></div></td>
+                    <td>3.SPA (extrémní povodeň)</td>
+                </tr>
+                <tr>
+                    <th>Sucho</th>
+                    <td><strong>H</strong> = <span id="river0"></span> [cm]</td>
+                    <td style="width:20px;"><div style="background-color:#cceeff;" class="informBox"></div></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th>Odkaz</th>
+                    <td colspan="4"><a href="#" id="riverLink"></a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div style="margin-top: 2em; display: none;" class="row" id="reservoirInformation">
+    <div class="col-md-12">
+        <table class="tabulkaStaniceMereni">
+            <tbody>
+                <tr>
+                    <td>
+                        Koruna hráze:
+                    </td>
+                    <td>
+                        <span id="korunaHrazeLbl"></span> [m n.m.]
+                    </td>
+                </tr>
+                <tr>
+                    <td style="color: #ff8040;">
+                        Kóta přelivu:
+                    </td>
+                    <td>
+                        <span id="kotaPrelivuLbl"></span> [m n.m.]
+                    </td>
+                </tr>
+                <tr>
+                    <td style="color: #ff0000;">
+                        Maximální retenční hladina:
+                    </td>
+                    <td>
+                        <span id="maxRetHladinaLbl"></span> [m n.m.]
+                    </td>
+                </tr>
+                <tr>
+                    <td style="color: #008000;">
+                        Hladina zásobního prostoru:
+                    </td>
+                    <td>
+                        <span id="hladZasProstLbl"></span> [m n.m.]
+                    </td>
+                </tr>
+                <tr>
+                    <td style="color: #ff00ff;">
+                        Hladina stálého nadržení:
+                    </td>
+                    <td>
+                        <span id="hladStalNadtLbl"></span> [m n.m.]
+                    </td>
+                </tr>
+                <tr>
+                    <td>Odkaz</td>
+                    <td><a href="#" id="reservoirLink"></a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div style="margin-top: 2em;" class="row">
+    <div class="col-md-12">
+        <div id="chartdiv" style="width:100%; height:600px;"></div>
+    </div>
+    <div class="col-md-12">
+        <table id="dataTable" class="dataTable"></table>
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/amcharts")
+
+    <script src="~/Scripts/daterangepicker/moment.min.js"></script>
+    <script src="~/Scripts/daterangepicker/daterangepicker.js"></script>
+
+    <script>
+        var chart;
+
+        function CreteGraph(data) {
+            chart = AmCharts.makeChart("chartdiv", {
+                "type": "serial",
+                "theme": "light",
+                "language": "cz",
+                "marginRight": 40,
+                "marginLeft": 40,
+                "autoMarginOffset": 20,
+                "dataDateFormat": "YYYY-MM-DD HH:NN",
+                "valueAxes": [{
+                    "id": "v1",
+                    "axisAlpha": 0,
+                    "position": "left",
+                    "ignoreAxisWidth": true
+                }],
+                "balloon": {
+                    "borderThickness": 1,
+                    "shadowAlpha": 0
+                },
+                "balloonDateFormat": "YYYY-MM-DD HH:NN",
+                "connect" : false,
+                "graphs": [{
+                    "id": "g1",
+                    "balloon": {
+                        "drop": true,
+                        "adjustBorderColor": false,
+                        "color": "#ffffff"
+                    },
+                    "bullet": "round",
+                    "bulletBorderAlpha": 1,
+                    "bulletColor": "#FFFFFF",
+                    "bulletSize": 5,
+                    "hideBulletsCount": 50,
+                    "lineThickness": 2,
+                    "title": "red line",
+                    "useLineColorForBulletBorder": true,
+                    "valueField": "value",
+                    "balloonText": "<span style='font-size:18px;'>[[value]]</span>"
+                }],
+                "chartScrollbar": {
+                    "graph": "g1",
+                    "oppositeAxis": false,
+                    "offset": 30,
+                    "scrollbarHeight": 80,
+                    "backgroundAlpha": 0,
+                    "selectedBackgroundAlpha": 0.1,
+                    "selectedBackgroundColor": "#888888",
+                    "graphFillAlpha": 0,
+                    "graphLineAlpha": 0.5,
+                    "selectedGraphFillAlpha": 0,
+                    "selectedGraphLineAlpha": 1,
+                    "autoGridCount": true,
+                    "color": "#AAAAAA",
+                    "categoryBalloonDateFormat": "YYYY-MM-DD HH:NN",
+                },
+                "chartCursor": {
+                    "pan": true,
+                    "valueLineEnabled": true,
+                    "valueLineBalloonEnabled": true,
+                    "cursorAlpha": 1,
+                    "cursorColor": "#258cbb",
+                    "limitToGraph": "g1",
+                    "valueLineAlpha": 0.2
+                },
+                "valueScrollbar": {
+                    "oppositeAxis": false,
+                    "offset": 50,
+                    "scrollbarHeight": 10
+                },
+                "categoryField": "date",
+                "categoryAxis": {
+                    "parseDates": true,
+                    "dashLength": 1,
+                    "minorGridEnabled": true,
+                    "minPeriod": "hh",
+                },
+                "export": {
+                    "enabled": true
+                },
+                "dataProvider": data,
+            });
+
+            chart.zoomOut()
+        };
+    </script>
+    <script>
+        $("#river").change(function () {
+            ShowWaitDialog();
+            $.ajax({
+                type: "GET",
+                url: '@Url.Content("~/Graf/GetSpots/")' + $("#river").val(),
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                //data: JSON.stringify($("#river").val()),
+                success: function (result) {
+                    var sel = $("#spot");
+                    sel.empty();
+                    for (var i = 0; i < result.length; i++) {
+                        sel.append('<option value="' + result[i].id + '">' + result[i].name + '</option>');
+                    }
+                    HideWaitDialog();
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    HideWaitDialog();
+                    alert("Nastala chyba \n\n" + xhr.responseText);
+                    eventLoginClick = true;
+                }
+            });
+        })
+
+        $('.rangeinput i').click(function () {
+            $(this).parent().find('input').click();
+        });
+
+        $('#start').daterangepicker({
+            "showDropdowns": true,
+            "autoApply": true,
+            "locale": {
+                "format": "DD/MM/YYYY",
+                "separator": " - ",
+                "applyLabel": "Apply",
+                "cancelLabel": "Cancel",
+                "fromLabel": "From",
+                "toLabel": "To",
+                "customRangeLabel": "Custom",
+                "daysOfWeek": [
+                "Ne",
+                "Po",
+                "Út",
+                "St",
+                "Čt",
+                "Pá",
+                "So"
+                ],
+                "monthNames": [
+                "Leden",
+                "Únor",
+                "Březen",
+                "Duben",
+                "Květen",
+                "Červen",
+                "Červenec",
+                "Srpen",
+                "Září",
+                "Říjen",
+                "Listopad",
+                "Prosinec"
+                ],
+                "firstDay": 1
+            },
+            "singleDatePicker": true,
+            "showDropdowns": true,
+            "linkedCalendars": false,
+            "autoUpdateInput": false,
+            "buttonClasses": "btn btn-lg"
+        }, function (start, end, label) {
+            $('#start').val(start.format('DD/MM/YYYY'));
+        });
+
+        $('#stop').daterangepicker({
+            "showDropdowns": true,
+            "autoApply": true,
+            "locale": {
+                "format": "DD/MM/YYYY",
+                "separator": " - ",
+                "applyLabel": "Apply",
+                "cancelLabel": "Cancel",
+                "fromLabel": "From",
+                "toLabel": "To",
+                "customRangeLabel": "Custom",
+                "daysOfWeek": [
+                "Ne",
+                "Po",
+                "Út",
+                "St",
+                "Čt",
+                "Pá",
+                "So"
+                ],
+                "monthNames": [
+                "Leden",
+                "Únor",
+                "Březen",
+                "Duben",
+                "Květen",
+                "Červen",
+                "Červenec",
+                "Srpen",
+                "Září",
+                "Říjen",
+                "Listopad",
+                "Prosinec"
+                ],
+                "firstDay": 1
+            },
+            "singleDatePicker": true,
+            "showDropdowns": true,
+            "linkedCalendars": false,
+            "autoUpdateInput": false,
+            "buttonClasses": "btn btn-lg"
+        }, function (start, end, label) {
+            $('#stop').val(start.format('DD/MM/YYYY'));
+        });
+
+        $("#Reload").click(function () {
+            var spot = $("#spot option:selected");
+            if (spot.text() == '') {
+                alert('Není vybrána žádná stanice!');
+                return;
+            }
+
+            var requestData =
+                {
+                    river: $("#river option:selected").val(),
+                    spot: spot.val(),
+                    start: $("#start").val(),
+                    stop: $("#stop").val(),
+                    type: $("input[name='type']:checked").val(),
+                };
+
+            ShowWaitDialog();
+            $.ajax({
+                type: "GET",
+                url: '@Url.Content("~/Graf/GetData/")',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                data: requestData,
+                success: function (result) {
+                    CreteGraph(result.samples);
+
+                    var trendLine0 = new AmCharts.TrendLine();
+                    trendLine0.initialValue = result.spot.spa0;
+                    trendLine0.finalValue = result.spot.spa0;
+                    trendLine0.lineColor = "#cceeff";
+                    trendLine0.initialDate = new Date(2012, 0, 2, 12);
+                    trendLine0.finalDate = new Date(2017, 0, 11, 12);
+                    trendLine0.lineThickness = 3;
+                    chart.addTrendLine(trendLine0);
+
+                    var trendLine1 = new AmCharts.TrendLine();
+                    trendLine1.initialValue = result.spot.spa1;
+                    trendLine1.finalValue = result.spot.spa1;
+                    trendLine1.lineColor = "#00FF00";
+                    trendLine1.initialDate = new Date(2012, 0, 2, 12);
+                    trendLine1.finalDate = new Date(2017, 0, 11, 12);
+                    trendLine1.lineThickness = 3;
+                    chart.addTrendLine(trendLine1);
+
+                    var trendLine2 = new AmCharts.TrendLine();
+                    trendLine2.initialValue = result.spot.spa2;
+                    trendLine2.finalValue = result.spot.spa2;
+                    trendLine2.lineColor = "#FFFF00";
+                    trendLine2.initialDate = new Date(2012, 0, 2, 12);
+                    trendLine2.finalDate = new Date(2017, 0, 11, 12);
+                    trendLine2.lineThickness = 3;
+                    chart.addTrendLine(trendLine2);
+
+                    var trendLine3 = new AmCharts.TrendLine();
+                    trendLine3.initialValue = result.spot.spa3;
+                    trendLine3.finalValue = result.spot.spa3;
+                    trendLine3.lineColor = "#FF0000";
+                    trendLine3.initialDate = new Date(2012, 0, 2, 12);
+                    trendLine3.finalDate = new Date(2017, 0, 11, 12);
+                    trendLine3.lineThickness = 3;
+                    chart.addTrendLine(trendLine3);
+
+                    var trendLine3e = new AmCharts.TrendLine();
+                    trendLine3e.initialValue = result.spot.spa3e;
+                    trendLine3e.finalValue = result.spot.spa3e;
+                    trendLine3e.lineColor = "#FF0000";
+                    trendLine3e.initialDate = new Date(2012, 0, 2, 12);
+                    trendLine3e.finalDate = new Date(2017, 0, 11, 12);
+                    trendLine3e.lineThickness = 3;
+                    chart.addTrendLine(trendLine3e);
+
+                    chart.validateNow();
+
+                    ShowSpotInformation(result.spot);
+                    GenerateDataTable(result.samples);
+
+                    HideWaitDialog();
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    HideWaitDialog();
+                    alert("Nastala chyba \n\n" + xhr.responseText);
+                    eventLoginClick = true;
+                }
+            });
+        })
+
+        function ShowSpotInformation(spot) {
+            if (spot.type == 0) { //ríver
+                $("#reservoirInformation").hide();
+                $("#river0").text((spot.spa0 == null) ? "" : spot.spa0);
+                $("#river1").text((spot.spa1 == null) ? "" : spot.spa1);
+                $("#river2").text((spot.spa2 == null) ? "" : spot.spa2);
+                $("#river3").text((spot.spa3 == null) ? "" : spot.spa3);
+                $("#river3e").text((spot.spa3e == null) ? "" : spot.spa3e);
+                $("#riverLink").text(spot.link);
+                $("#riverLink").attr("href", spot.link);
+                $("#riverInformation").show();
+            }
+            else {
+                $("#riverInformation").hide();
+                $("#korunaHrazeLbl").text((spot.spa3e == null) ? "" : spot.spa3e);
+                $("#kotaPrelivuLbl").text((spot.spa1 == null) ? "" : spot.spa1);
+                $("#maxRetHladinaLbl").text((spot.spa3 == null) ? "" : spot.spa3);
+                $("#hladZasProstLbl").text((spot.spa2 == null) ? "" : spot.spa2);
+                $("#hladStalNadtLbl").text((spot.spa0 == null) ? "" : spot.spa0);
+                $("#reservoirLink").text(spot.link);
+                $("#reservoirLink").attr("href", spot.link);
+
+                $("#reservoirInformation").show();
+            }
+        }
+
+        function GenerateDataTable(samples) {
+            $("#dataTable").empty();
+            var trHTML = '';
+            $.each(samples, function (i, item) {
+                trHTML += '<tr><td>' + item.date + '</td><td>' + item.value + '</td></tr>';
+            });
+            $("#dataTable").append(trHTML);
+        }
+    </script>
+}

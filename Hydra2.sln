@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hydra2.Model", "Hydra2.Model\Hydra2.Model.csproj", "{3663AA10-2A12-498F-A2F6-B4A21B2BAEF7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hydra2.Web", "Hydra2.Web\Hydra2.Web.csproj", "{09BDADA3-A8D0-4232-A000-12BAD21F71D3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hydra2.DownLoad", "Hydra.DownLoad\Hydra2.DownLoad.csproj", "{E5E7FF89-0EA7-4D5C-B633-F8563331D5D8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hydra2.DownLoaders", "Hydra2.Downloaders\Hydra2.DownLoaders.csproj", "{C27BB457-F73B-4F1C-AC5C-3A7B0761C271}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3663AA10-2A12-498F-A2F6-B4A21B2BAEF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3663AA10-2A12-498F-A2F6-B4A21B2BAEF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3663AA10-2A12-498F-A2F6-B4A21B2BAEF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3663AA10-2A12-498F-A2F6-B4A21B2BAEF7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09BDADA3-A8D0-4232-A000-12BAD21F71D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09BDADA3-A8D0-4232-A000-12BAD21F71D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09BDADA3-A8D0-4232-A000-12BAD21F71D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09BDADA3-A8D0-4232-A000-12BAD21F71D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5E7FF89-0EA7-4D5C-B633-F8563331D5D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5E7FF89-0EA7-4D5C-B633-F8563331D5D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5E7FF89-0EA7-4D5C-B633-F8563331D5D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5E7FF89-0EA7-4D5C-B633-F8563331D5D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C27BB457-F73B-4F1C-AC5C-3A7B0761C271}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C27BB457-F73B-4F1C-AC5C-3A7B0761C271}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C27BB457-F73B-4F1C-AC5C-3A7B0761C271}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C27BB457-F73B-4F1C-AC5C-3A7B0761C271}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
