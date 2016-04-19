@@ -1,0 +1,17 @@
+﻿
+@{
+    ViewBag.Title = "Ruční update";
+}
+
+<h2>Ruční update stanice</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <label for="stationId">Zadejte název stanice</label>
+    <input type="number" id="stationId" name="stationId" />
+    <br /><br />
+    <input class="btn btn-info" type="submit"value="Zkontrolovat" />
+}
+

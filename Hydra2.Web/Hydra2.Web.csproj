@@ -458,6 +458,7 @@
     <None Include="NLog.xsd">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Properties\PublishProfiles\WebDeploy.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\daterangepicker\daterangepicker.js" />
     <Content Include="Scripts\daterangepicker\moment.min.js" />
@@ -489,6 +490,7 @@
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Graf\Index.cshtml" />
     <Content Include="Views\Adm\Index.cshtml" />
+    <Content Include="Views\Adm\HandUpdate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

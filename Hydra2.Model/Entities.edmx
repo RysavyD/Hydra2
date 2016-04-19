@@ -11,6 +11,7 @@
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="Name" Type="nvarchar" MaxLength="60" Nullable="false" />
+          <Property Name="RaftLink" Type="nvarchar" MaxLength="60" />
         </EntityType>
         <EntityType Name="Sample">
           <Key>
@@ -101,6 +102,7 @@
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="Name" Type="String" Nullable="false" MaxLength="60" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="Station" Relationship="Hydra2Model.FK_Station_River" FromRole="River" ToRole="Station" />
+          <Property Name="RaftLink" Type="String" MaxLength="60" FixedLength="false" Unicode="true" />
         </EntityType>
         <EntityType Name="Station">
           <Key>
@@ -166,6 +168,7 @@
           <EntitySetMapping Name="River">
             <EntityTypeMapping TypeName="Hydra2Model.River">
               <MappingFragment StoreEntitySet="River">
+                <ScalarProperty Name="RaftLink" ColumnName="RaftLink" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>

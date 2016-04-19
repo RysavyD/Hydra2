@@ -17,12 +17,12 @@
     </div>
     <div class="col-md-3 rangeinput border">
         <h4>Začátek</h4>
-        <input class="form-control" id="start" type="text" value="01/01/2015">
+        <input class="form-control" id="start" type="text" value="@Model.StartDate">
         <i class="glyphicon glyphicon-calendar fa fa-calendar" style="position: absolute; bottom: 20px; right: 24px; top:auto; cursor: pointer;"></i>
     </div>
     <div class="col-md-3 rangeinput border">
         <h4>Konec</h4>
-        <input class="form-control" id="stop" type="text" value="01/01/2016">
+        <input class="form-control" id="stop" type="text" value="@Model.StopDate">
         <i class="glyphicon glyphicon-calendar fa fa-calendar" style="position: absolute; bottom: 20px; right: 24px; top:auto; cursor: pointer;"></i>
     </div>
  </div>
@@ -77,8 +77,12 @@
                     <td></td>
                 </tr>
                 <tr>
-                    <th>Odkaz</th>
-                    <td colspan="4"><a href="#" id="riverLink"></a></td>
+                    <th>Odkaz na měřící stanici</th>
+                    <td colspan="4"><a href="#" target="_blank" id="riverLink"></a></td>
+                </tr>
+                <tr>
+                    <th>Odkaz na raft.cz s informacemi o toku</th>
+                    <td colspan="4"><a href="#" target="_blank" id="raftLink"></a></td>
                 </tr>
             </tbody>
         </table>
@@ -129,8 +133,12 @@
                     </td>
                 </tr>
                 <tr>
-                    <td>Odkaz</td>
+                    <td>Odkaz na stanici</td>
                     <td><a href="#" id="reservoirLink"></a></td>
+                </tr>
+                <tr>
+                    <th>Odkaz na raft.cz</th>
+                    <td><a href="#" target="_blank" id="raftLink2"></a></td>
                 </tr>
             </tbody>
         </table>
@@ -367,7 +375,6 @@
 
             var requestData =
                 {
-                    river: $("#river option:selected").val(),
                     spot: spot.val(),
                     start: $("#start").val(),
                     stop: $("#stop").val(),
@@ -454,6 +461,8 @@
                 $("#river3e").text((spot.spa3e == null) ? "" : spot.spa3e);
                 $("#riverLink").text(spot.link);
                 $("#riverLink").attr("href", spot.link);
+                $("#raftLink").text(spot.raftLink);
+                $("#raftLink").attr("href", spot.raftLink);
                 $("#riverInformation").show();
             }
             else {
@@ -465,7 +474,8 @@
                 $("#hladStalNadtLbl").text((spot.spa0 == null) ? "" : spot.spa0);
                 $("#reservoirLink").text(spot.link);
                 $("#reservoirLink").attr("href", spot.link);
-
+                $("#raftLink2").text(spot.raftLink);
+                $("#raftLink2").attr("href", spot.raftLink);
                 $("#reservoirInformation").show();
             }
         }

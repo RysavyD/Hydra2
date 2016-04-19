@@ -113,9 +113,12 @@ namespace Hydra2.DownLoaders
 
                             if (tds.Length > 3)
                             {
-                                record.Temperature = (string.IsNullOrWhiteSpace(tds[3]))
-                                    ? (float?) null
-                                    : Convert.ToSingle(tds[3], _nfi);
+                                if (!string.IsNullOrWhiteSpace(tds[3]))
+                                {
+                                    float temperature;
+                                    if (float.TryParse(tds[3], out temperature))
+                                        record.Temperature = temperature;
+                                }
                             }
 
                             result.Add(record);

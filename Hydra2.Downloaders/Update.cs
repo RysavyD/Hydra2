@@ -61,7 +61,7 @@ namespace Hydra2.DownLoaders
             }
         }
 
-        private static ISpotInformationDownLoader GetDownloader(int dowloadType)
+        public static ISpotInformationDownLoader GetDownloader(int dowloadType)
         {
             switch(dowloadType)
             {
