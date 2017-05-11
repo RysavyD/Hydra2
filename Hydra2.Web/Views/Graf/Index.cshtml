@@ -5,7 +5,11 @@
 }
 
 <link rel="stylesheet" href="~/Content/daterangepicker/daterangepicker.css" />
-
+<div style="margin-top: 2em;" class="row">
+    <div class="col-md-12" border>
+        <h4>Údaje z většiny stanic jsou zaznamenávané od 29. 7. 2012. Pokud zvolíte starší datum, nebudou vrácena žádná data.</h4>
+    </div>
+</div>
 <div style="margin-top: 2em;" class="row">
     <div class="col-md-3 border">
         <h4>Tok</h4>
@@ -26,7 +30,7 @@
         <i class="glyphicon glyphicon-calendar fa fa-calendar" style="position: absolute; bottom: 20px; right: 24px; top:auto; cursor: pointer;"></i>
     </div>
  </div>
- <div style="margin-top: 2em;" class="row">
+<div style="margin-top: 2em;" class="row">
     <div class="col-md-3" border>
         <h4>Sledované veličiny</h4>
         <input type="radio" name="type" value="h" title="h" checked="checked" /> Hladina
@@ -250,12 +254,15 @@
     <script>
         $("#river").change(function () {
             ShowWaitDialog();
+            riverId = $("#river").val();
+            spotId = undefined;
+            setUrlHashes();
+
             $.ajax({
                 type: "GET",
                 url: '@Url.Content("~/Graf/GetSpots/")' + $("#river").val(),
                 contentType: 'application/json; charset=utf-8',
                 dataType: 'json',
-                //data: JSON.stringify($("#river").val()),
                 success: function (result) {
                     var sel = $("#spot");
                     sel.empty();
@@ -271,6 +278,11 @@
                 }
             });
         })
+
+        $("#spot").change(function () {
+            spotId = $("#spot").val();
+            setUrlHashes();
+        });
 
         $('.rangeinput i').click(function () {
             $(this).parent().find('input').click();
@@ -321,6 +333,11 @@
             $('#start').val(start.format('DD/MM/YYYY'));
         });
 
+        $('#start').on('apply.daterangepicker', function (ev, picker) {
+            start = $('#start').val();
+            setUrlHashes();
+        });
+
         $('#stop').daterangepicker({
             "showDropdowns": true,
             "autoApply": true,
@@ -365,6 +382,16 @@
         }, function (start, end, label) {
             $('#stop').val(start.format('DD/MM/YYYY'));
         });
+
+        $('#stop').on('apply.daterangepicker', function (ev, picker) {
+            stop = $('#stop').val();
+            setUrlHashes();
+        });
+
+        $("input[type=radio]").change(function () {
+            type = $("input[type=radio]:checked").val();
+            setUrlHashes();
+        })
 
         $("#Reload").click(function () {
             var spot = $("#spot option:selected");
@@ -487,6 +514,97 @@
                 trHTML += '<tr><td>' + item.date + '</td><td>' + item.value + '</td></tr>';
             });
             $("#dataTable").append(trHTML);
+        }
+
+        var riverId;
+        var spotId;
+        var start;
+        var stop;
+        var type;
+
+        $(document).ready(function () {
+            var hashes = window.location.hash.split('#')
+            var needLoad = false;
+
+            if (hashes.length > 1) {
+                if ($.isNumeric(hashes[1])) {
+                    riverId = hashes[1];
+                }
+            }
+            if (hashes.length > 2) {
+                spotId = hashes[2];
+                needLoad = true;
+            }
+
+            if (hashes.length > 3) {
+                start = hashes[3];
+            } else {
+                start = $("#start").val();
+            }
+
+            if (hashes.length > 4) {
+                stop = hashes[4];
+            } else {
+                stop = $("#stop").val();
+            }
+
+            if (hashes.length > 5) {
+                type = hashes[5];
+            } else {
+                type = $("input[name='type']:checked").val();
+            }
+
+            if (needLoad) {
+                ShowWaitDialog();
+                $("#river").val(riverId);
+                $("#start").val(start);
+                $("#stop").val(stop);
+
+                $.ajax({
+                    type: "GET",
+                    url: '@Url.Content("~/Graf/GetSpots/")' + riverId,
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
+                    success: function (result) {
+                        var sel = $("#spot");
+                        sel.empty();
+                        for (var i = 0; i < result.length; i++) {
+                            sel.append('<option value="' + result[i].id + '">' + result[i].name + '</option>');
+                        }
+
+                        $("#spot").val(spotId);
+                        $("start").val(start);
+                        $("stop").val(stop);
+                        $("#Reload").click();
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        HideWaitDialog();
+                    }
+             });
+
+            }
+        });
+
+        function setUrlHashes() {
+            if ($.isNumeric(riverId) && $.isNumeric(spotId)) {
+                var newHash = riverId + '#' + spotId + '#'
+
+                if (start != undefined) {
+                    newHash += start;
+                }
+                newHash += '#';
+
+                if (stop != undefined) {
+                    newHash += stop;
+                }
+                newHash += '#';
+
+                if (type != undefined) {
+                    newHash += type;
+                }
+
+                window.location.hash = newHash;
+            }
         }
     </script>
 }
