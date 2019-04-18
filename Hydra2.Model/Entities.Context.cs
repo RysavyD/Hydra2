@@ -28,5 +28,6 @@ namespace Hydra2.Model
         public virtual DbSet<River> River { get; set; }
         public virtual DbSet<Station> Station { get; set; }
         public virtual DbSet<Sample> Sample { get; set; }
+        public virtual DbSet<Config> Config { get; set; }
     }
 }

@@ -4,7 +4,9 @@ namespace Hydra2.Web.Models
 {
     public class Sample
     {
-        public DateTime Date { get; set; }
-        public float? Value { get; set; }
+        public string Date { get; set; }
+        public float? h { get; set; }
+        public float? Q { get; set; }
+        public float? t { get; set; }
     }
 }

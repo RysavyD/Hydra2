@@ -29,12 +29,6 @@ namespace Hydra2.Web
                       "~/Content/bootstrap.css",
                       "~/Content/site.css"));
 
-            bundles.Add(new ScriptBundle("~/bundles/Amcharts").Include(
-                        "~/Scripts/amcharts/amcharts.js",
-                        "~/Scripts/amcharts/serial.js",
-                        "~/Scripts/amcharts/themes/light.js",
-                        "~/Scripts/amcharts/lang/cz.js"));
-
             BundleTable.EnableOptimizations = true;
         }
     }

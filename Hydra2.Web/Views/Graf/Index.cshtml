@@ -29,19 +29,19 @@
         <input class="form-control" id="stop" type="text" value="@Model.StopDate">
         <i class="glyphicon glyphicon-calendar fa fa-calendar" style="position: absolute; bottom: 20px; right: 24px; top:auto; cursor: pointer;"></i>
     </div>
- </div>
+</div>
 <div style="margin-top: 2em;" class="row">
     <div class="col-md-3" border>
         <h4>Sledované veličiny</h4>
-        <input type="radio" name="type" value="h" title="h" checked="checked" /> Hladina
-        <input type="radio" name="type" value="Q" /> Průtok
-        <input type="radio" name="type" value="t" /> Teplota
+        <input type="checkbox" name="type" id="h" value="h" title="h" checked="checked" /> Hladina
+        <input type="checkbox" name="type" id="Q" value="Q" /> Průtok
+        <input type="checkbox" name="type" id="t" value="t" /> Teplota
     </div>
-     <div class="col-md-3 border">
-         <div style="padding-top: 10px;">
-             <div id="Reload" class="btn btn-success btn-lg">Načíst data</div>
-         </div>
-     </div>
+    <div class="col-md-3 border">
+        <div style="padding-top: 10px;">
+            <div id="Reload" class="btn btn-success btn-lg">Načíst data</div>
+        </div>
+    </div>
 </div>
 <div style="margin-top: 2em; display: none;" class="row" id="riverInformation">
     <div class="col-md-12">
@@ -158,7 +158,9 @@
 </div>
 
 @section scripts {
-    @Scripts.Render("~/bundles/amcharts")
+    <script src="https://www.amcharts.com/lib/4/core.js"></script>
+    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
 
     <script src="~/Scripts/daterangepicker/moment.min.js"></script>
     <script src="~/Scripts/daterangepicker/daterangepicker.js"></script>
@@ -166,93 +168,108 @@
     <script>
         var chart;
 
-        function CreteGraph(data) {
-            chart = AmCharts.makeChart("chartdiv", {
-                "type": "serial",
-                "theme": "light",
-                "language": "cz",
-                "marginRight": 40,
-                "marginLeft": 40,
-                "autoMarginOffset": 20,
-                "dataDateFormat": "YYYY-MM-DD HH:NN",
-                "valueAxes": [{
-                    "id": "v1",
-                    "axisAlpha": 0,
-                    "position": "left",
-                    "ignoreAxisWidth": true
-                }],
-                "balloon": {
-                    "borderThickness": 1,
-                    "shadowAlpha": 0
-                },
-                "balloonDateFormat": "YYYY-MM-DD HH:NN",
-                "connect" : false,
-                "graphs": [{
-                    "id": "g1",
-                    "balloon": {
-                        "drop": true,
-                        "adjustBorderColor": false,
-                        "color": "#ffffff"
-                    },
-                    "bullet": "round",
-                    "bulletBorderAlpha": 1,
-                    "bulletColor": "#FFFFFF",
-                    "bulletSize": 5,
-                    "hideBulletsCount": 50,
-                    "lineThickness": 2,
-                    "title": "red line",
-                    "useLineColorForBulletBorder": true,
-                    "valueField": "value",
-                    "balloonText": "<span style='font-size:18px;'>[[value]]</span>"
-                }],
-                "chartScrollbar": {
-                    "graph": "g1",
-                    "oppositeAxis": false,
-                    "offset": 30,
-                    "scrollbarHeight": 80,
-                    "backgroundAlpha": 0,
-                    "selectedBackgroundAlpha": 0.1,
-                    "selectedBackgroundColor": "#888888",
-                    "graphFillAlpha": 0,
-                    "graphLineAlpha": 0.5,
-                    "selectedGraphFillAlpha": 0,
-                    "selectedGraphLineAlpha": 1,
-                    "autoGridCount": true,
-                    "color": "#AAAAAA",
-                    "categoryBalloonDateFormat": "YYYY-MM-DD HH:NN",
-                },
-                "chartCursor": {
-                    "pan": true,
-                    "valueLineEnabled": true,
-                    "valueLineBalloonEnabled": true,
-                    "cursorAlpha": 1,
-                    "cursorColor": "#258cbb",
-                    "limitToGraph": "g1",
-                    "valueLineAlpha": 0.2
-                },
-                "valueScrollbar": {
-                    "oppositeAxis": false,
-                    "offset": 50,
-                    "scrollbarHeight": 10
-                },
-                "categoryField": "date",
-                "categoryAxis": {
-                    "parseDates": true,
-                    "dashLength": 1,
-                    "minorGridEnabled": true,
-                    "minPeriod": "hh",
-                },
-                "export": {
-                    "enabled": true
-                },
-                "dataProvider": data,
-            });
+        function CreateGraph(data) {
+            am4core.useTheme(am4themes_animated);
+            chart = am4core.create("chartdiv", am4charts.XYChart);
+            // Increase contrast by taking evey second color
+            chart.colors.step = 2;
+            var chartData = generateChartData(data);
+            chart.data = chartData;
 
-            chart.zoomOut()
+            // Create axes
+            var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+            //dateAxis.renderer.minGridDistance = 50;
+            dateAxis.dateFormats.setKey("day", "MMMM dt");
+
+            createAxisAndSeries("h", "Hladina", false, "circle", "#009933");
+            createAxisAndSeries("Q", "Průtok", true, "triangle", "#0000cc");
+            createAxisAndSeries("t", "Teplota", true, "rectangle", "#cc0000");
+
+            // Add legend
+            chart.legend = new am4charts.Legend();
+
+            // Add cursor
+            chart.cursor = new am4charts.XYCursor();
         };
+
+        function generateChartData(data) {
+            var chartData = [];
+
+            $.each(data,
+                function (i, item) {
+                    chartData.push({
+                        date: new Date(item.Date),
+                        h: item.h,
+                        Q: item.Q,
+                        t: item.t,
+                    });
+                });
+
+            return chartData;
+        }
+
+        // Create series
+        function createAxisAndSeries(field, name, opposite, bullet, color) {
+            var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+
+            var series = chart.series.push(new am4charts.LineSeries());
+            series.dataFields.valueY = field;
+            series.dataFields.dateX = "date";
+            series.strokeWidth = 2;
+            series.stroke = am4core.color(color);
+            series.yAxis = valueAxis;
+            series.name = name;
+            series.tooltipText = "{name}: [bold]{valueY}[/]";
+            series.tensionX = 0.8;
+
+            switch (bullet) {
+                case "triangle":
+                    var bullet = series.bullets.push(new am4charts.Bullet());
+                    bullet.width = 12;
+                    bullet.height = 12;
+                    bullet.horizontalCenter = "middle";
+                    bullet.verticalCenter = "middle";
+
+                    var triangle = bullet.createChild(am4core.Triangle);
+                    triangle.stroke = am4core.color(color);
+                    triangle.fill = am4core.color(color);
+                    triangle.strokeWidth = 2;
+                    triangle.direction = "top";
+                    triangle.width = 12;
+                    triangle.height = 12;
+                    break;
+                case "rectangle":
+                    var bullet = series.bullets.push(new am4charts.Bullet());
+                    bullet.width = 10;
+                    bullet.height = 10;
+                    bullet.horizontalCenter = "middle";
+                    bullet.verticalCenter = "middle";
+
+                    var rectangle = bullet.createChild(am4core.Rectangle);
+                    rectangle.stroke = am4core.color(color);
+                    rectangle.fill = am4core.color(color);
+                    rectangle.strokeWidth = 2;
+                    rectangle.width = 10;
+                    rectangle.height = 10;
+                    break;
+                default:
+                    var bullet = series.bullets.push(new am4charts.CircleBullet());
+                    bullet.circle.stroke = am4core.color(color);
+                    bullet.circle.fill = am4core.color(color);
+                    bullet.circle.strokeWidth = 2;
+                    break;
+            }
+
+            valueAxis.renderer.line.strokeOpacity = 1;
+            valueAxis.renderer.line.strokeWidth = 2;
+            valueAxis.renderer.line.stroke = am4core.color(color);
+            valueAxis.renderer.labels.template.fill = series.stroke;
+            valueAxis.renderer.opposite = opposite;
+            valueAxis.renderer.grid.template.disabled = true;
+        }
     </script>
     <script>
-        $("#river").change(function () {
+        $("#river").change(function() {
             ShowWaitDialog();
             riverId = $("#river").val();
             spotId = undefined;
@@ -263,7 +280,7 @@
                 url: '@Url.Content("~/Graf/GetSpots/")' + $("#river").val(),
                 contentType: 'application/json; charset=utf-8',
                 dataType: 'json',
-                success: function (result) {
+                success: function(result) {
                     var sel = $("#spot");
                     sel.empty();
                     for (var i = 0; i < result.length; i++) {
@@ -271,7 +288,7 @@
                     }
                     HideWaitDialog();
                 },
-                error: function (xhr, ajaxOptions, thrownError) {
+                error: function(xhr, ajaxOptions, thrownError) {
                     HideWaitDialog();
                     alert("Nastala chyba \n\n" + xhr.responseText);
                     eventLoginClick = true;
@@ -279,134 +296,143 @@
             });
         })
 
-        $("#spot").change(function () {
+        $("#spot").change(function() {
             spotId = $("#spot").val();
             setUrlHashes();
         });
 
-        $('.rangeinput i').click(function () {
+        $('.rangeinput i').click(function() {
             $(this).parent().find('input').click();
         });
 
         $('#start').daterangepicker({
-            "showDropdowns": true,
-            "autoApply": true,
-            "locale": {
-                "format": "DD/MM/YYYY",
-                "separator": " - ",
-                "applyLabel": "Apply",
-                "cancelLabel": "Cancel",
-                "fromLabel": "From",
-                "toLabel": "To",
-                "customRangeLabel": "Custom",
-                "daysOfWeek": [
-                "Ne",
-                "Po",
-                "Út",
-                "St",
-                "Čt",
-                "Pá",
-                "So"
-                ],
-                "monthNames": [
-                "Leden",
-                "Únor",
-                "Březen",
-                "Duben",
-                "Květen",
-                "Červen",
-                "Červenec",
-                "Srpen",
-                "Září",
-                "Říjen",
-                "Listopad",
-                "Prosinec"
-                ],
-                "firstDay": 1
+                "showDropdowns": true,
+                "autoApply": true,
+                "locale": {
+                    "format": "DD/MM/YYYY",
+                    "separator": " - ",
+                    "applyLabel": "Apply",
+                    "cancelLabel": "Cancel",
+                    "fromLabel": "From",
+                    "toLabel": "To",
+                    "customRangeLabel": "Custom",
+                    "daysOfWeek": [
+                        "Ne",
+                        "Po",
+                        "Út",
+                        "St",
+                        "Čt",
+                        "Pá",
+                        "So"
+                    ],
+                    "monthNames": [
+                        "Leden",
+                        "Únor",
+                        "Březen",
+                        "Duben",
+                        "Květen",
+                        "Červen",
+                        "Červenec",
+                        "Srpen",
+                        "Září",
+                        "Říjen",
+                        "Listopad",
+                        "Prosinec"
+                    ],
+                    "firstDay": 1
+                },
+                "singleDatePicker": true,
+                "showDropdowns": true,
+                "linkedCalendars": false,
+                "autoUpdateInput": false,
+                "buttonClasses": "btn btn-lg"
             },
-            "singleDatePicker": true,
-            "showDropdowns": true,
-            "linkedCalendars": false,
-            "autoUpdateInput": false,
-            "buttonClasses": "btn btn-lg"
-        }, function (start, end, label) {
-            $('#start').val(start.format('DD/MM/YYYY'));
-        });
+            function(start, end, label) {
+                $('#start').val(start.format('DD/MM/YYYY'));
+            });
 
-        $('#start').on('apply.daterangepicker', function (ev, picker) {
-            start = $('#start').val();
-            setUrlHashes();
-        });
+        $('#start').on('apply.daterangepicker',
+            function(ev, picker) {
+                start = $('#start').val();
+                setUrlHashes();
+            });
 
         $('#stop').daterangepicker({
-            "showDropdowns": true,
-            "autoApply": true,
-            "locale": {
-                "format": "DD/MM/YYYY",
-                "separator": " - ",
-                "applyLabel": "Apply",
-                "cancelLabel": "Cancel",
-                "fromLabel": "From",
-                "toLabel": "To",
-                "customRangeLabel": "Custom",
-                "daysOfWeek": [
-                "Ne",
-                "Po",
-                "Út",
-                "St",
-                "Čt",
-                "Pá",
-                "So"
-                ],
-                "monthNames": [
-                "Leden",
-                "Únor",
-                "Březen",
-                "Duben",
-                "Květen",
-                "Červen",
-                "Červenec",
-                "Srpen",
-                "Září",
-                "Říjen",
-                "Listopad",
-                "Prosinec"
-                ],
-                "firstDay": 1
+                "showDropdowns": true,
+                "autoApply": true,
+                "locale": {
+                    "format": "DD/MM/YYYY",
+                    "separator": " - ",
+                    "applyLabel": "Apply",
+                    "cancelLabel": "Cancel",
+                    "fromLabel": "From",
+                    "toLabel": "To",
+                    "customRangeLabel": "Custom",
+                    "daysOfWeek": [
+                        "Ne",
+                        "Po",
+                        "Út",
+                        "St",
+                        "Čt",
+                        "Pá",
+                        "So"
+                    ],
+                    "monthNames": [
+                        "Leden",
+                        "Únor",
+                        "Březen",
+                        "Duben",
+                        "Květen",
+                        "Červen",
+                        "Červenec",
+                        "Srpen",
+                        "Září",
+                        "Říjen",
+                        "Listopad",
+                        "Prosinec"
+                    ],
+                    "firstDay": 1
+                },
+                "singleDatePicker": true,
+                "showDropdowns": true,
+                "linkedCalendars": false,
+                "autoUpdateInput": false,
+                "buttonClasses": "btn btn-lg"
             },
-            "singleDatePicker": true,
-            "showDropdowns": true,
-            "linkedCalendars": false,
-            "autoUpdateInput": false,
-            "buttonClasses": "btn btn-lg"
-        }, function (start, end, label) {
-            $('#stop').val(start.format('DD/MM/YYYY'));
-        });
+            function(start, end, label) {
+                $('#stop').val(start.format('DD/MM/YYYY'));
+            });
 
-        $('#stop').on('apply.daterangepicker', function (ev, picker) {
-            stop = $('#stop').val();
+        $('#stop').on('apply.daterangepicker',
+            function(ev, picker) {
+                stop = $('#stop').val();
+                setUrlHashes();
+            });
+
+        $("input[type=checkbox]").change(function() {
+            type = GetSampleTypes();
             setUrlHashes();
         });
 
-        $("input[type=radio]").change(function () {
-            type = $("input[type=radio]:checked").val();
-            setUrlHashes();
-        })
-
-        $("#Reload").click(function () {
+        $("#Reload").click(function() {
             var spot = $("#spot option:selected");
             if (spot.text() == '') {
                 alert('Není vybrána žádná stanice!');
                 return;
             }
 
+            if (type == '') {
+                alert('Není vybrána žádná veličina!');
+                return;
+            }
+
             var requestData =
-                {
-                    spot: spot.val(),
-                    start: $("#start").val(),
-                    stop: $("#stop").val(),
-                    type: $("input[name='type']:checked").val(),
-                };
+            {
+                spot: spot.val(),
+                start: $("#start").val(),
+                stop: $("#stop").val(),
+                type: type
+            };
 
             ShowWaitDialog();
             $.ajax({
@@ -415,62 +441,14 @@
                 contentType: 'application/json; charset=utf-8',
                 dataType: 'json',
                 data: requestData,
-                success: function (result) {
-                    CreteGraph(result.samples);
-
-                    var trendLine0 = new AmCharts.TrendLine();
-                    trendLine0.initialValue = result.spot.spa0;
-                    trendLine0.finalValue = result.spot.spa0;
-                    trendLine0.lineColor = "#cceeff";
-                    trendLine0.initialDate = new Date(2012, 0, 2, 12);
-                    trendLine0.finalDate = new Date(2017, 0, 11, 12);
-                    trendLine0.lineThickness = 3;
-                    chart.addTrendLine(trendLine0);
-
-                    var trendLine1 = new AmCharts.TrendLine();
-                    trendLine1.initialValue = result.spot.spa1;
-                    trendLine1.finalValue = result.spot.spa1;
-                    trendLine1.lineColor = "#00FF00";
-                    trendLine1.initialDate = new Date(2012, 0, 2, 12);
-                    trendLine1.finalDate = new Date(2017, 0, 11, 12);
-                    trendLine1.lineThickness = 3;
-                    chart.addTrendLine(trendLine1);
-
-                    var trendLine2 = new AmCharts.TrendLine();
-                    trendLine2.initialValue = result.spot.spa2;
-                    trendLine2.finalValue = result.spot.spa2;
-                    trendLine2.lineColor = "#FFFF00";
-                    trendLine2.initialDate = new Date(2012, 0, 2, 12);
-                    trendLine2.finalDate = new Date(2017, 0, 11, 12);
-                    trendLine2.lineThickness = 3;
-                    chart.addTrendLine(trendLine2);
-
-                    var trendLine3 = new AmCharts.TrendLine();
-                    trendLine3.initialValue = result.spot.spa3;
-                    trendLine3.finalValue = result.spot.spa3;
-                    trendLine3.lineColor = "#FF0000";
-                    trendLine3.initialDate = new Date(2012, 0, 2, 12);
-                    trendLine3.finalDate = new Date(2017, 0, 11, 12);
-                    trendLine3.lineThickness = 3;
-                    chart.addTrendLine(trendLine3);
-
-                    var trendLine3e = new AmCharts.TrendLine();
-                    trendLine3e.initialValue = result.spot.spa3e;
-                    trendLine3e.finalValue = result.spot.spa3e;
-                    trendLine3e.lineColor = "#FF0000";
-                    trendLine3e.initialDate = new Date(2012, 0, 2, 12);
-                    trendLine3e.finalDate = new Date(2017, 0, 11, 12);
-                    trendLine3e.lineThickness = 3;
-                    chart.addTrendLine(trendLine3e);
-
-                    chart.validateNow();
-
+                success: function(result) {
+                    CreateGraph(result.samples);
                     ShowSpotInformation(result.spot);
                     GenerateDataTable(result.samples);
 
                     HideWaitDialog();
                 },
-                error: function (xhr, ajaxOptions, thrownError) {
+                error: function(xhr, ajaxOptions, thrownError) {
                     HideWaitDialog();
                     alert("Nastala chyba \n\n" + xhr.responseText);
                     eventLoginClick = true;
@@ -491,8 +469,8 @@
                 $("#raftLink").text(spot.raftLink);
                 $("#raftLink").attr("href", spot.raftLink);
                 $("#riverInformation").show();
-            }
-            else {
+            } else {
+
                 $("#riverInformation").hide();
                 $("#korunaHrazeLbl").text((spot.spa3e == null) ? "" : spot.spa3e);
                 $("#kotaPrelivuLbl").text((spot.spa1 == null) ? "" : spot.spa1);
@@ -508,12 +486,39 @@
         }
 
         function GenerateDataTable(samples) {
-            $("#dataTable").empty();
-            var trHTML = '';
-            $.each(samples, function (i, item) {
-                trHTML += '<tr><td>' + item.date + '</td><td>' + item.value + '</td></tr>';
+            $("#dataTable").html('');
+            var trHTML = '<tr><td>Datum</td><td>Hladina</td><td>Průtok</td><td>Teplota</td></tr>';
+            $.each(samples,
+                function (i, item) {
+                    var line = '<tr><td>' + item.Date + '</td><td>';
+                    if (item.h != null) {
+                        line += item.h;
+                    }
+
+                    line += '</td><td>';
+                    if (item.Q != null) {
+                        line += item.Q;
+                    }
+
+                    line += '</td><td>';
+                    if (item.t != null) {
+                        line += item.t;
+                    }
+
+                    line += '</td></tr>';
+                    trHTML += line;
+                });
+            $("#dataTable").html(trHTML);
+        }
+
+        function GetSampleTypes()
+        {
+            var selectedTypes = '';
+            $.each($("input[type=checkbox]:checked"), function () {
+                selectedTypes += $(this).val();
             });
-            $("#dataTable").append(trHTML);
+
+            return selectedTypes;
         }
 
         var riverId;
@@ -522,7 +527,7 @@
         var stop;
         var type;
 
-        $(document).ready(function () {
+        $(document).ready(function() {
             var hashes = window.location.hash.split('#')
             var needLoad = false;
 
@@ -550,8 +555,12 @@
 
             if (hashes.length > 5) {
                 type = hashes[5];
+                $("#h").prop('checked', type.includes('h'));
+                $("#Q").prop('checked', type.includes('Q'));
+                $("#t").prop('checked', type.includes('t'));
+
             } else {
-                type = $("input[name='type']:checked").val();
+                type = GetSampleTypes();
             }
 
             if (needLoad) {
@@ -565,7 +574,7 @@
                     url: '@Url.Content("~/Graf/GetSpots/")' + riverId,
                     contentType: 'application/json; charset=utf-8',
                     dataType: 'json',
-                    success: function (result) {
+                    success: function(result) {
                         var sel = $("#spot");
                         sel.empty();
                         for (var i = 0; i < result.length; i++) {
@@ -577,10 +586,10 @@
                         $("stop").val(stop);
                         $("#Reload").click();
                     },
-                    error: function (xhr, ajaxOptions, thrownError) {
+                    error: function(xhr, ajaxOptions, thrownError) {
                         HideWaitDialog();
                     }
-             });
+                });
 
             }
         });

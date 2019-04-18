@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Web;
 using System.Web.Mvc;
 using System.Xml;
 using Hydra2.Web.Models;
@@ -16,19 +18,28 @@ namespace Hydra2.Web.Controllers
             {
                 var model = new GrafViewModel()
                 {
-                    Rivers = entities.River
+                    Rivers = GetRiversFromDb(),
+
+                    StartDate = now.AddDays(-7).ToString("dd'/'MM'/'yyyy"),
+                    StopDate = now.AddDays(1).ToString("dd'/'MM'/'yyyy"),
+                };
+
+                return View(model);
+            }
+        }
+
+        public List<SelectListItem> GetRiversFromDb()
+        {
+            using (var entities = new Model.Hydra2Entities())
+            {
+                return entities.River
                         .OrderBy(r => r.Name)
                         .Select(r => new SelectListItem()
                         {
                             Text = r.Name,
                             Value = r.Id.ToString(),
                         })
-                        .ToList(),
-                    StartDate = now.AddDays(-7).ToString("dd'/'MM'/'yyyy"),
-                    StopDate = now.AddDays(1).ToString("dd'/'MM'/'yyyy"),
-                };
-
-                return View(model);
+                        .ToList();
             }
         }
 
@@ -49,61 +60,134 @@ namespace Hydra2.Web.Controllers
         {
             DateTime startDate = ParseDateTime(start);
             DateTime stopDate = ParseDateTime(stop);
+            System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo("en-GB");
+            System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.GetCultureInfo("en-GB");
 
+            var stationEntity = GetStationEntity(spot);
+            var samples = GetSamples(type, spot, startDate, stopDate);
+
+            var result = new
+            {
+                spot = new
+                {
+                    spa0 = stationEntity.Spa0,
+                    spa1 = stationEntity.Spa1,
+                    spa2 = stationEntity.Spa2,
+                    spa3 = stationEntity.Spa3,
+                    spa3e = stationEntity.Spa3e,
+                    link = stationEntity.Link,
+                    type = stationEntity.Type,
+                    raftLink = string.IsNullOrEmpty(stationEntity.River.RaftLink) 
+                        ? "" 
+                        : "http://www.raft.cz/" + stationEntity.River.RaftLink,
+                },
+                samples
+            };
+
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
+        private Hydra2.Model.Station GetStationEntity(int spot)
+        {
             using (var entities = new Model.Hydra2Entities())
             {
                 var stationEntity = entities.Station.First(r => r.Id == spot);
-
-                Sample[] samples = new Sample[0];
-                if (type == "h")
-                    samples =
-                        entities.Sample.Where(
-                            s =>
-                                s.Id_Station == spot && s.TimeStamp >= startDate && s.TimeStamp <= stopDate &&
-                                s.Level.HasValue)
-                            .OrderBy(s => s.TimeStamp)
-                            .Select(s => new Sample() {Date = s.TimeStamp, Value = s.Level})
-                            .ToArray();
-
-                if (type == "Q")
-                    samples =
-                        entities.Sample.Where(
-                            s =>
-                                s.Id_Station == spot && s.TimeStamp >= startDate && s.TimeStamp <= stopDate &&
-                                s.Flow.HasValue)
-                            .OrderBy(s => s.TimeStamp)
-                            .Select(s => new Sample() { Date = s.TimeStamp, Value = s.Flow })
-                            .ToArray();
-
-                if (type == "t")
-                    samples =
-                        entities.Sample.Where(
-                            s =>
-                                s.Id_Station == spot && s.TimeStamp >= startDate && s.TimeStamp <= stopDate &&
-                                s.Temperature.HasValue)
-                            .OrderBy(s => s.TimeStamp)
-                            .Select(s => new Sample() { Date = s.TimeStamp, Value = s.Temperature })
-                            .ToArray();
-
-                var jsonSamples = samples.Select(s => new { date = s.Date.ToString("yyyy-MM-dd HH:mm"), value = s.Value.ToString() });
-
-                var result = new
+                return new Hydra2.Model.Station
                 {
-                    spot = new
+                    Spa0 = stationEntity.Spa0,
+                    Spa1 = stationEntity.Spa1,
+                    Spa2 = stationEntity.Spa2,
+                    Spa3 = stationEntity.Spa3,
+                    Spa3e = stationEntity.Spa3e,
+                    Link = stationEntity.Link,
+                    Type = stationEntity.Type,
+                    River = new Hydra2.Model.River()
                     {
-                        spa0 = stationEntity.Spa0,
-                        spa1 = stationEntity.Spa1,
-                        spa2 = stationEntity.Spa2,
-                        spa3 = stationEntity.Spa3,
-                        spa3e = stationEntity.Spa3e,
-                        link = stationEntity.Link,
-                        type = stationEntity.Type,
-                        raftLink = string.IsNullOrEmpty(stationEntity.River.RaftLink) ? "" : "http://www.raft.cz/" + stationEntity.River.RaftLink,
-                    },
-                    samples = jsonSamples,
+                        RaftLink = stationEntity.River.RaftLink
+                    }
+                };
+            }
+        }
+
+        private Sample[] GetSamples(string type, int spot, DateTime startDate, DateTime stopDate)
+        {
+            var useLevel = type.Contains("h");
+            var useFlow = type.Contains("Q");
+            var useTemperature = type.Contains("t");
+
+            var hours = (int)(stopDate - startDate).TotalHours;
+            var result = new Sample[hours];
+            var random1 = new Random();
+            var random2 = new Random(random1.Next(0, 25000));
+            var random3 = new Random(random1.Next(0, 55000));
+
+            var lastLevel = 100f;
+            var lastFlow = 8.5f;
+            var lastTemperature = 3.5f;
+
+            for (int i = 0; i < hours; i++)
+            {
+                var rand1 = random1.NextDouble();
+                var rand2 = random2.NextDouble();
+                var rand3 = random3.NextDouble();
+                var nextLevel = Convert.ToSingle(lastLevel + lastLevel * ((rand1 - 0.5) / 5));
+                var nextFlow = Convert.ToSingle(lastFlow + lastFlow * ((rand2 - 0.5) / 5));
+                var nextTemperature = Convert.ToSingle(lastTemperature + lastTemperature * ((rand3 - 0.5) / 5));
+                result[i] = new Sample
+                {
+                    Date = startDate.AddHours(i).ToString("yyyy-MM-dd HH:mm"),
+                    h = useLevel ? nextLevel : (float?)null,
+                    Q = useFlow ? nextFlow : (float?)null,
+                    t = useTemperature ? nextTemperature : (float?)null
                 };
 
-                return Json(result, JsonRequestBehavior.AllowGet);
+                lastLevel = nextLevel;
+                lastFlow = nextFlow;
+                lastTemperature = nextTemperature;
+            }
+
+
+            return result;
+        }
+
+        private Sample[] GetSamples1(string type, int spot, DateTime startDate, DateTime stopDate)
+        {
+            var useLevel = type.Contains("h");
+            var useFlow = type.Contains("Q");
+            var useTemperature = type.Contains("t");
+            using (var entities = new Model.Hydra2Entities())
+            {
+                Sample[] samples = null;
+                samples = entities.Sample
+                        .Where(s => s.Id_Station == spot && s.TimeStamp >= startDate && s.TimeStamp <= stopDate && s.Temperature.HasValue)
+                        .OrderBy(s => s.TimeStamp)
+                        .Select(s => new Sample()
+                        {
+                            Date = s.TimeStamp.ToString("yyyy-MM-dd HH:mm"),
+                            t = useTemperature ? s.Temperature : null,
+                            Q = useFlow ? s.Flow : null,
+                            h = useLevel ? s.Level : null
+                        })
+                        .ToArray();
+
+                return samples ?? new Sample[0];
+            }
+        }
+
+
+        public JsonResult GetRivers()
+        {
+            using (var entities = new Model.Hydra2Entities())
+            {
+                var model = entities.River.OrderBy(r => r.Name)
+                        .Select(r => new
+                        {
+                            Name = r.Name,
+                            Id = r.Id,
+                        })
+                        .ToArray();
+
+                return Json(model, JsonRequestBehavior.AllowGet);
             }
         }
 
@@ -121,6 +205,10 @@ namespace Hydra2.Web.Controllers
         {
             DateTime startDate = ParseDateTime2(start);
             DateTime stopDate = ParseDateTime2(stop);
+
+            System.Threading.Thread.CurrentThread.CurrentCulture =
+                System.Threading.Thread.CurrentThread.CurrentUICulture =
+                new System.Globalization.CultureInfo("en-US");
 
             XmlDocument doc = new XmlDocument();
             XmlNode docNode = doc.CreateXmlDeclaration("1.0", "UTF-8", null);

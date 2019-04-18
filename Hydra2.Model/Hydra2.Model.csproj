@@ -55,6 +55,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config.cs">
+      <DependentUpon>Entities.tt</DependentUpon>
+    </Compile>
     <Compile Include="Entities.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -89,7 +92,9 @@
     </EntityDeploy>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.Config" />
+    <None Include="App.Config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Entities.edmx.diagram">
       <DependentUpon>Entities.edmx</DependentUpon>
     </None>
@@ -101,6 +106,7 @@
       <DependentUpon>Entities.edmx</DependentUpon>
       <LastGenOutput>Entities.Context.cs</LastGenOutput>
     </Content>
+    <Content Include="Entities.edmx.sql" />
     <Content Include="Entities.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <DependentUpon>Entities.edmx</DependentUpon>

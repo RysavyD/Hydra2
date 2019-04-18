@@ -10,6 +10,7 @@
         <AssociationConnector Association="Hydra2Model.FK_Station_River" />
         <EntityTypeShape EntityType="Hydra2Model.Sample" Width="1.5" PointX="3.125" PointY="3" />
         <AssociationConnector Association="Hydra2Model.FK_Sample_Station" />
+        <EntityTypeShape EntityType="Hydra2Model.Config" Width="1.5" PointX="4.875" PointY="3.125" />
         </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

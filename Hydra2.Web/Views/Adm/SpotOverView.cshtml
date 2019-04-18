@@ -1,0 +1,16 @@
+﻿
+@{
+    ViewBag.Title = "SpotOverView";
+}
+
+<table>
+    @foreach(var item in ViewBag.Model)
+    {
+        <tr>
+            <td>@item.riverName</td>
+            <td>@item.spotName</td>
+            <td>@item.url</td>
+            <td>@item.lastSample</td>
+        </tr>
+    }
+</table>

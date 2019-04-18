@@ -8,11 +8,11 @@ namespace Hydra.DownLoad
     {
         static void Main()
         {
-            string url = "http://app.pod.cz/portal/SaP/cz/PC/Mereni.aspx?id=300021282&oid=2";
+            string url = "http://www.pmo.cz/portal/sap/cz/mereni_135.htm";
             Stopwatch sw = new Stopwatch();
             sw.Start();
 
-            for (int i = 1; i <= 5; i++)
+            for (int i = 1; i <= 6; i++)
             {
                 var downloader = Update.GetDownloader(i);
                 if (downloader == null)
@@ -25,9 +25,9 @@ namespace Hydra.DownLoad
                     var samples = downloader.GetRecords(url);
                     Console.WriteLine("{0} - {1} - {2}", i, downloader.GetType(), samples.Count);
                 }
-                catch
+                catch(Exception ex)
                 {
-                    Console.WriteLine("{0} - {1} - error", i, downloader.GetType());
+                    Console.WriteLine("{0} - {1} - error: {2}", i, downloader.GetType(), ex.Message);
                 }
             }
 

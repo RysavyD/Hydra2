@@ -61,6 +61,7 @@
     <Compile Include="CHMI.cs" />
     <Compile Include="ISpotInformationDownLoader.cs" />
     <Compile Include="Pla Nadrze.cs" />
+    <Compile Include="PmoToky.cs" />
     <Compile Include="PmoNadrze.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Pvl Nadrze.cs" />
