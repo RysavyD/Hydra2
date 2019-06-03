@@ -166,6 +166,7 @@
     </Compile>
     <Compile Include="Models\GrafViewModel.cs" />
     <Compile Include="Models\Sample.cs" />
+    <Compile Include="Models\SpotOverviewViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

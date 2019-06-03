@@ -1,17 +1,18 @@
-﻿
+﻿@model Hydra2.Web.Models.SpotOverviewViewModel[]
+
 @{
     ViewBag.Title = "SpotOverView";
 }
 
 <table>
-    @foreach(var item in ViewBag.Model)
+    @foreach(var item in Model)
     {
         <tr>
-            <td>@item.riverName</td>
-            <td>@item.spotName</td>
-            <td>@item.spotType</td>
-            <td>@item.url</td>
-            <td>@item.lastSample</td>
+            <td>@item.RiverName</td>
+            <td>@item.SpotName</td>
+            <td>@item.SpotType</td>
+            <td>@item.Url</td>
+            <td>@item.LastSample</td>
         </tr>
     }
 </table>

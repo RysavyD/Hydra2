@@ -2,6 +2,7 @@
 using System.Web.Mvc;
 using Hydra2.DownLoaders;
 using Hydra2.Model;
+using Hydra2.Web.Models;
 using System;
 using NLog;
 using System.Reflection;
@@ -28,38 +29,40 @@ namespace Hydra2.Web.Controllers
 
         public ActionResult SpotOverView(bool samples = false)
         {
+            SpotOverviewViewModel[] model;
             using (var entities = new Hydra2Entities())
             {
                 if (samples)
                 {
                     entities.Database.CommandTimeout = 180; // 180s
-                    ViewBag.Model = entities.Station.Select(s =>
-                        new
+                    model = entities.Station.Select(s =>
+                        new SpotOverviewViewModel
                         {
-                            riverName = s.River.Name,
-                            spotName = s.Spot,
-                            spotType = s.Type,
-                            url = s.Link,
-                            lastSample = s.Sample.OrderByDescending(sm => sm.TimeStamp).FirstOrDefault().TimeStamp
+                            RiverName = s.River.Name,
+                            SpotName = s.Spot,
+                            SpotType = s.Type,
+                            Url = s.Link,
+                            LastSample = s.Sample.OrderByDescending(sm => sm.TimeStamp).FirstOrDefault().TimeStamp
                         })
-                        .OrderBy(s => s.lastSample)
+                        .OrderBy(s => s.LastSample)
                         .ToArray();
                 }
                 else
                 {
-                    ViewBag.Model = entities.Station.Select(s =>
-                         new
+                    model = entities.Station.Select(s =>
+                         new SpotOverviewViewModel
                          {
-                            riverName = s.River.Name,
-                            spotName = s.Spot,
-                            spotType = s.Type,
-                            url = s.Link,
+                            RiverName = s.River.Name,
+                            SpotName = s.Spot,
+                            SpotType = s.Type,
+                            Url = s.Link,
                          })
-                        .OrderBy(s => s.riverName)
+                        .OrderBy(s => s.RiverName)
+                        .ThenBy(s => s.SpotName)
                         .ToArray();
                 }
             }
-            return View();
+            return View(model);
         }
 
         public DateTime GetLastSample(int id)

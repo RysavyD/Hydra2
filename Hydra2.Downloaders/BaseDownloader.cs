@@ -116,7 +116,9 @@ namespace Hydra2.DownLoaders
                                 if (!string.IsNullOrWhiteSpace(tds[3]))
                                 {
                                     float temperature;
-                                    if (float.TryParse(tds[3], out temperature))
+                                    if (float.TryParse(tds[3].Replace(",", "."), out temperature))
+                                        record.Temperature = temperature;
+                                    else if (float.TryParse(tds[3].Replace(".",","), out temperature))
                                         record.Temperature = temperature;
                                 }
                             }
