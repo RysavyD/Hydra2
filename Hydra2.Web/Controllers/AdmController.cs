@@ -26,22 +26,38 @@ namespace Hydra2.Web.Controllers
             return View();
         }
 
-        public ActionResult SpotOverView()
+        public ActionResult SpotOverView(bool samples = false)
         {
             using (var entities = new Hydra2Entities())
             {
-                var model = entities.Station.Select(s =>
-                new
+                if (samples)
                 {
-                    riverName = s.River.Name,
-                    spotName = s.Spot,
-                    url = s.Link,
-                    lastSample = s.Sample.OrderByDescending(sm => sm.TimeStamp).FirstOrDefault().TimeStamp
-                })
-                .OrderBy(s => s.lastSample)
-                .ToArray();
-
-                ViewBag.Model = model;
+                    entities.Database.CommandTimeout = 180; // 180s
+                    ViewBag.Model = entities.Station.Select(s =>
+                        new
+                        {
+                            riverName = s.River.Name,
+                            spotName = s.Spot,
+                            spotType = s.Type,
+                            url = s.Link,
+                            lastSample = s.Sample.OrderByDescending(sm => sm.TimeStamp).FirstOrDefault().TimeStamp
+                        })
+                        .OrderBy(s => s.lastSample)
+                        .ToArray();
+                }
+                else
+                {
+                    ViewBag.Model = entities.Station.Select(s =>
+                         new
+                         {
+                            riverName = s.River.Name,
+                            spotName = s.Spot,
+                            spotType = s.Type,
+                            url = s.Link,
+                         })
+                        .OrderBy(s => s.riverName)
+                        .ToArray();
+                }
             }
             return View();
         }
