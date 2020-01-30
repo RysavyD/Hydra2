@@ -1,8 +1,7 @@
-﻿using System;   
-using Hydra2.DownLoaders;
+﻿using Hydra2.DownLoaders;
+using Hydra2.Service;
 using Quartz;
 using Quartz.Impl;
-using Hydra2.Model;
 using NLog;
 
 namespace Hydra2.Web

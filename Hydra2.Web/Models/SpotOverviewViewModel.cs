@@ -4,6 +4,7 @@ namespace Hydra2.Web.Models
 {
     public class SpotOverviewViewModel
     {
+        public int Id { get; set; }
         public string RiverName { get; set; }
         public string SpotName { get; set; }
         public int SpotType { get; set; }

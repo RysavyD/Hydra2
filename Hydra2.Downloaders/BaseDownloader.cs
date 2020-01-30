@@ -5,7 +5,8 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using HtmlAgilityPack;
-using Hydra2.Model;
+using Hydra2.Service;
+using Hydra2.Service.Model;
 using NLog;
 
 namespace Hydra2.DownLoaders

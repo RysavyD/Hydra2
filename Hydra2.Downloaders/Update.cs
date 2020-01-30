@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Linq;
-using Hydra2.Model;
+using System.Configuration;
+using Hydra2.Service;
 using NLog;
 
 namespace Hydra2.DownLoaders
@@ -12,47 +12,37 @@ namespace Hydra2.DownLoaders
             NLogger.Log(LogLevel.Info, string.Format("Update Spots {0}-{1}", startIndex, stopIndex));
             System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.CreateSpecificCulture("cs-cz");
 
+            var conn = ConfigurationManager.ConnectionStrings["Hydra2Connection"].ConnectionString;
+            var dataService = new DataService(conn);
+
             for (int i = startIndex; i <= stopIndex; i++)
             {
                 NLogger.Log(LogLevel.Info, "Index: " + i);
 
                 try
                 {
-                    using (var entities = new Hydra2Entities())
+                    var station = dataService.GetStation(i);
+                    if (station == null)
+                        continue;
+
+                    NLogger.Log(LogLevel.Info, "Stanice: " + station.Spot);
+
+                    var downloader = GetDownloader(station.DownLoadType);
+
+                    NLogger.Log(LogLevel.Debug, "DownloaderType: " + downloader.GetType());
+                    var downLoadSamples = downloader.GetRecords(station.Link);
+
+                    var count = 0;
+
+                    foreach (var sample in downLoadSamples)
                     {
-                        var station = entities.Station.FirstOrDefault(s => s.Id == i);
-                        if (station == null)
-                            continue;
-
-                        NLogger.Log(LogLevel.Info, "Stanice: " + station.Spot);
-
-                        var downloader = GetDownloader(station.DownLoadType);
-
-                        NLogger.Log(LogLevel.Debug, "DownloaderType: " + downloader.GetType());
-                        var downLoadSamples = downloader.GetRecords(station.Link);
-
-                        var lastSample = station.Sample.OrderByDescending(s => s.TimeStamp)
-                            .FirstOrDefault();
-                        var lastTime = (lastSample == null) ? new DateTime(2010, 1, 1) : lastSample.TimeStamp;
-                        var count = 0;
-
-                        foreach (var sample in downLoadSamples.Where(s => s.TimeStamp > lastTime))
-                        {
-                            entities.Sample.Add(new Sample()
-                            {
-                                Flow = sample.Flow,
-                                Id_Station = station.Id,
-                                Level = sample.Level,
-                                Temperature = sample.Temperature,
-                                TimeStamp = sample.TimeStamp,
-                            });
-                            count++;
-                        }
-
-                        NLogger.Log(LogLevel.Debug, "Vzorků: " + count + ", ukládám ...");
-                        entities.SaveChanges();
-                        NLogger.Log(LogLevel.Info, "Uloženo");
+                        var rows = dataService.AddSample(station.Id, sample.Level, sample.Flow, sample.Temperature,
+                            sample.TimeStamp);
+                        count += rows;
                     }
+
+                    NLogger.Log(LogLevel.Debug, "Vzorků: " + count + ", ukládám ...");
+                    NLogger.Log(LogLevel.Info, "Uloženo");
                 }
                 catch (Exception ex)
                 {
@@ -66,55 +56,45 @@ namespace Hydra2.DownLoaders
             NLogger.Log(LogLevel.Info, "Start update.");
             System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.CreateSpecificCulture("cs-cz");
 
+            var conn = ConfigurationManager.ConnectionStrings["Hydra2Connection"].ConnectionString;
+            var configService = new ConfigService(conn);
+            var dataService = new DataService(conn);
+
             while (true)
             {
                 try
                 {
-                    using (var entities = new Hydra2Entities())
+                    var config = configService.GetFirstConfig();
+                    NLogger.Log(LogLevel.Info, "Načten config: " + config.Value);
+
+                    config.Value = config.Value + 1;
+
+                    if (config.Value > 650)
+                        config.Value = 0;
+
+                    configService.UpdateConfig(config.Id, config.Value);
+
+                    var station = dataService.GetStation(config.Value);
+                    if (station == null)
+                        continue;
+
+                    NLogger.Log(LogLevel.Info, "Stanice: " + station.Spot);
+
+                    var downloader = GetDownloader(station.DownLoadType);
+
+                    NLogger.Log(LogLevel.Debug, "DownloaderType: " + downloader.GetType());
+                    var downLoadSamples = downloader.GetRecords(station.Link);
+
+                    var count = 0;
+                    foreach (var sample in downLoadSamples)
                     {
-                        var config = entities.Config.First();
-                        NLogger.Log(LogLevel.Info, "Načten config: " + config.Value);
-
-                        config.Value = config.Value + 1;
-
-                        entities.SaveChanges();
-
-                        if (config.Value > 650)
-                            config.Value = 1;
-
-                        var station = entities.Station.FirstOrDefault(s => s.Id == config.Value);
-                        if (station == null)
-                            continue;
-
-                        NLogger.Log(LogLevel.Info, "Stanice: " + station.Spot);
-
-                        var downloader = GetDownloader(station.DownLoadType);
-
-                        NLogger.Log(LogLevel.Debug, "DownloaderType: " + downloader.GetType());
-                        var downLoadSamples = downloader.GetRecords(station.Link);
-
-                        var lastSample = station.Sample.OrderByDescending(s => s.TimeStamp)
-                            .FirstOrDefault();
-                        var lastTime = (lastSample == null) ? new DateTime(2010, 1, 1) : lastSample.TimeStamp;
-                        var count = 0;
-
-                        foreach (var sample in downLoadSamples.Where(s => s.TimeStamp > lastTime))
-                        {
-                            entities.Sample.Add(new Sample()
-                            {
-                                Flow = sample.Flow,
-                                Id_Station = station.Id,
-                                Level = sample.Level,
-                                Temperature = sample.Temperature,
-                                TimeStamp = sample.TimeStamp,
-                            });
-                            count++;
-                        }
-
-                        NLogger.Log(LogLevel.Debug, "Vzorků: " + count + ", ukládám ...");
-                        entities.SaveChanges();
-                        NLogger.Log(LogLevel.Info, "Uloženo");
+                        var rows = dataService.AddSample(station.Id, sample.Level, sample.Flow, sample.Temperature,
+                            sample.TimeStamp);
+                        count += rows;
                     }
+
+                    NLogger.Log(LogLevel.Debug, "Vzorků: " + count + ", ukládám ...");
+                    NLogger.Log(LogLevel.Info, "Uloženo");
                 }
                 catch (Exception ex)
                 {

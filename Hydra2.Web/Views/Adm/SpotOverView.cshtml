@@ -11,8 +11,9 @@
             <td>@item.RiverName</td>
             <td>@item.SpotName</td>
             <td>@item.SpotType</td>
-            <td>@item.Url</td>
+            <td><a href="@item.Url" target="_blank">@item.Url</a></td>
             <td>@item.LastSample</td>
+            <td><a target="_blank" href='@Url.Content("~/Api/HandUpdate/"+item.Id)'>HandUpdate</a></td>
         </tr>
     }
 </table>

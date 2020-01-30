@@ -1,7 +1,7 @@
 ﻿using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
-using Hydra2.Model;
+using Hydra2.Service;
 
 namespace Hydra2.Web
 {

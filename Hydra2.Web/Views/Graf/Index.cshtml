@@ -34,8 +34,8 @@
     <div class="col-md-3" border>
         <h4>Sledované veličiny</h4>
         <input type="checkbox" name="type" id="h" value="h" title="h" checked="checked" /> Hladina
-        <input type="checkbox" name="type" id="Q" value="Q" /> Průtok
-        <input type="checkbox" name="type" id="t" value="t" /> Teplota
+        <input type="checkbox" name="type" id="Q" value="Q" title="Q" checked="checked" /> Průtok
+        <input type="checkbox" name="type" id="t" value="t" title="t" /> Teplota
     </div>
     <div class="col-md-3 border">
         <div style="padding-top: 10px;">
@@ -178,7 +178,6 @@
 
             // Create axes
             var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
-            //dateAxis.renderer.minGridDistance = 50;
             dateAxis.dateFormats.setKey("day", "MMMM dt");
 
             createAxisAndSeries("h", "Hladina", false, "circle", "#009933");
@@ -201,7 +200,7 @@
                         date: new Date(item.Date),
                         h: item.h,
                         Q: item.Q,
-                        t: item.t,
+                        t: item.t
                     });
                 });
 
@@ -224,39 +223,40 @@
 
             switch (bullet) {
                 case "triangle":
-                    var bullet = series.bullets.push(new am4charts.Bullet());
-                    bullet.width = 12;
-                    bullet.height = 12;
+                    bullet = series.bullets.push(new am4charts.Bullet());
+                    bullet.width = 6;
+                    bullet.height = 6;
                     bullet.horizontalCenter = "middle";
                     bullet.verticalCenter = "middle";
 
                     var triangle = bullet.createChild(am4core.Triangle);
                     triangle.stroke = am4core.color(color);
                     triangle.fill = am4core.color(color);
-                    triangle.strokeWidth = 2;
+                    triangle.strokeWidth = 1;
                     triangle.direction = "top";
-                    triangle.width = 12;
-                    triangle.height = 12;
+                    triangle.width = 6;
+                    triangle.height = 6;
                     break;
                 case "rectangle":
-                    var bullet = series.bullets.push(new am4charts.Bullet());
-                    bullet.width = 10;
-                    bullet.height = 10;
+                    bullet = series.bullets.push(new am4charts.Bullet());
+                    bullet.width = 6;
+                    bullet.height = 6;
                     bullet.horizontalCenter = "middle";
                     bullet.verticalCenter = "middle";
 
                     var rectangle = bullet.createChild(am4core.Rectangle);
                     rectangle.stroke = am4core.color(color);
                     rectangle.fill = am4core.color(color);
-                    rectangle.strokeWidth = 2;
-                    rectangle.width = 10;
-                    rectangle.height = 10;
+                    rectangle.strokeWidth = 1;
+                    rectangle.width = 6;
+                    rectangle.height = 6;
                     break;
                 default:
-                    var bullet = series.bullets.push(new am4charts.CircleBullet());
+                    bullet = series.bullets.push(new am4charts.CircleBullet());
                     bullet.circle.stroke = am4core.color(color);
                     bullet.circle.fill = am4core.color(color);
-                    bullet.circle.strokeWidth = 2;
+                    bullet.circle.radius = 3;
+                    bullet.circle.strokeWidth = 1;
                     break;
             }
 
@@ -286,6 +286,12 @@
                     for (var i = 0; i < result.length; i++) {
                         sel.append('<option value="' + result[i].id + '">' + result[i].name + '</option>');
                     }
+
+                    if (result.length === 1) {
+                        spotId = result[0].id;
+                        setUrlHashes();
+                    }
+
                     HideWaitDialog();
                 },
                 error: function(xhr, ajaxOptions, thrownError) {
@@ -294,7 +300,7 @@
                     eventLoginClick = true;
                 }
             });
-        })
+        });
 
         $("#spot").change(function() {
             spotId = $("#spot").val();
@@ -454,7 +460,7 @@
                     eventLoginClick = true;
                 }
             });
-        })
+        });
 
         function ShowSpotInformation(spot) {
             if (spot.type == 0) { //ríver
@@ -528,7 +534,7 @@
         var type;
 
         $(document).ready(function() {
-            var hashes = window.location.hash.split('#')
+            var hashes = window.location.hash.split('#');
             var needLoad = false;
 
             if (hashes.length > 1) {
@@ -596,7 +602,7 @@
 
         function setUrlHashes() {
             if ($.isNumeric(riverId) && $.isNumeric(spotId)) {
-                var newHash = riverId + '#' + spotId + '#'
+                var newHash = riverId + '#' + spotId + '#';
 
                 if (start != undefined) {
                     newHash += start;

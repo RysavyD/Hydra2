@@ -1,58 +1,59 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Web.Mvc;
 using System.Xml;
+using Hydra2.Service;
 using Hydra2.Web.Models;
 
 namespace Hydra2.Web.Controllers
 {
     public class GrafController : Controller
     {
+        private readonly DataService _dataService;
+
+        public GrafController()
+        {
+            var conn = ConfigurationManager.ConnectionStrings["Hydra2Connection"].ConnectionString;
+            _dataService = new DataService(conn);
+        }
+
         public ActionResult Index()
         {
             var now = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central Europe Standard Time");
 
-            using (var entities = new Model.Hydra2Entities())
+            var model = new GrafViewModel()
             {
-                var model = new GrafViewModel()
-                {
-                    Rivers = GetRiversFromDb(),
+                Rivers = GetRiversFromDb(),
 
-                    StartDate = now.AddDays(-7).ToString("dd'/'MM'/'yyyy"),
-                    StopDate = now.AddDays(1).ToString("dd'/'MM'/'yyyy"),
-                };
+                StartDate = now.AddDays(-7).ToString("dd'/'MM'/'yyyy"),
+                StopDate = now.AddDays(1).ToString("dd'/'MM'/'yyyy"),
+            };
 
-                return View(model);
-            }
+            return View(model);
         }
 
         public List<SelectListItem> GetRiversFromDb()
         {
-            using (var entities = new Model.Hydra2Entities())
-            {
-                return entities.River
-                        .OrderBy(r => r.Name)
-                        .Select(r => new SelectListItem()
-                        {
-                            Text = r.Name,
-                            Value = r.Id.ToString(),
-                        })
-                        .ToList();
-            }
+            return _dataService.GetRivers()
+                .OrderBy(r => r.Name)
+                .Select(r => new SelectListItem()
+                {
+                    Text = r.Name,
+                    Value = r.Id.ToString(),
+                })
+                .ToList();
         }
 
         public JsonResult GetSpots(int id)
         {
-            using (var entities = new Model.Hydra2Entities())
-            {
-                var model = entities.Station.Where(s => s.Id_River == id)
+                var model = _dataService.GetStations(id)
                     .OrderBy(s => s.Spot)
                     .Select(s => new { name = s.Spot, id = s.Id })
                     .ToArray();
 
                 return Json(model, JsonRequestBehavior.AllowGet);
-            }
         }
 
         public JsonResult GetData(int spot, string start, string stop, string type)
@@ -62,7 +63,7 @@ namespace Hydra2.Web.Controllers
             System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo("en-GB");
             System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.GetCultureInfo("en-GB");
 
-            var stationEntity = GetStationEntity(spot);
+            var stationEntity = _dataService.GetStation(spot);
             var samples = GetSamples(type, spot, startDate, stopDate);
 
             var result = new
@@ -76,36 +77,14 @@ namespace Hydra2.Web.Controllers
                     spa3e = stationEntity.Spa3e,
                     link = stationEntity.Link,
                     type = stationEntity.Type,
-                    raftLink = string.IsNullOrEmpty(stationEntity.River.RaftLink) 
+                    raftLink = string.IsNullOrEmpty(stationEntity.RaftLink) 
                         ? "" 
-                        : "http://www.raft.cz/" + stationEntity.River.RaftLink,
+                        : "http://www.raft.cz/" + stationEntity.RaftLink,
                 },
                 samples
             };
 
             return Json(result, JsonRequestBehavior.AllowGet);
-        }
-
-        private Hydra2.Model.Station GetStationEntity(int spot)
-        {
-            using (var entities = new Model.Hydra2Entities())
-            {
-                var stationEntity = entities.Station.First(r => r.Id == spot);
-                return new Hydra2.Model.Station
-                {
-                    Spa0 = stationEntity.Spa0,
-                    Spa1 = stationEntity.Spa1,
-                    Spa2 = stationEntity.Spa2,
-                    Spa3 = stationEntity.Spa3,
-                    Spa3e = stationEntity.Spa3e,
-                    Link = stationEntity.Link,
-                    Type = stationEntity.Type,
-                    River = new Hydra2.Model.River()
-                    {
-                        RaftLink = stationEntity.River.RaftLink
-                    }
-                };
-            }
         }
 
         //private Sample[] GetSamples(string type, int spot, DateTime startDate, DateTime stopDate)
@@ -154,41 +133,17 @@ namespace Hydra2.Web.Controllers
             var useLevel = type.Contains("h");
             var useFlow = type.Contains("Q");
             var useTemperature = type.Contains("t");
-            using (var entities = new Model.Hydra2Entities())
-            {
-                Sample[] samples = null;
-                samples = entities.Sample
-                        .Where(s => s.Id_Station == spot && s.TimeStamp >= startDate && s.TimeStamp <= stopDate)
-                        .OrderBy(s => s.TimeStamp)
-                        .ToArray()
-                        .Select(s => new Sample()
-                        {
-                            Date = s.TimeStamp.ToString("yyyy-MM-dd HH:mm"),
-                            t = useTemperature ? s.Temperature : null,
-                            Q = useFlow ? s.Flow : null,
-                            h = useLevel ? s.Level : null
-                        })
-                        .ToArray();
+            var samples = _dataService.GetSamples(spot, startDate, stopDate)
+                .Select(s => new Sample()
+                {
+                    Date = s.TimeStamp.ToString("yyyy-MM-dd HH:mm"),
+                    t = useTemperature ? s.Temperature : null,
+                    Q = useFlow ? s.Flow : null,
+                    h = useLevel ? s.Level : null
+                })
+                .ToArray();
 
-                return samples ?? new Sample[0];
-            }
-        }
-
-
-        public JsonResult GetRivers()
-        {
-            using (var entities = new Model.Hydra2Entities())
-            {
-                var model = entities.River.OrderBy(r => r.Name)
-                        .Select(r => new
-                        {
-                            Name = r.Name,
-                            Id = r.Id,
-                        })
-                        .ToArray();
-
-                return Json(model, JsonRequestBehavior.AllowGet);
-            }
+            return samples;
         }
 
         private DateTime ParseDateTime(string text)
@@ -208,7 +163,7 @@ namespace Hydra2.Web.Controllers
 
             System.Threading.Thread.CurrentThread.CurrentCulture =
                 System.Threading.Thread.CurrentThread.CurrentUICulture =
-                new System.Globalization.CultureInfo("en-US");
+                    new System.Globalization.CultureInfo("en-US");
 
             XmlDocument doc = new XmlDocument();
             XmlNode docNode = doc.CreateXmlDeclaration("1.0", "UTF-8", null);
@@ -216,54 +171,47 @@ namespace Hydra2.Web.Controllers
 
             XmlNode stavy = doc.CreateElement("stavy");
 
-            using (var entities = new Model.Hydra2Entities())
+            var stationEntity = _dataService.GetStation(spot);
+            var samples = _dataService.GetSamples(spot, startDate, stopDate)
+                .Where(s => s.Level.HasValue);
+
+            foreach (var sample in samples)
             {
-                var stationEntity = entities.Station.First(r => r.Id == spot);
+                XmlNode stav = doc.CreateElement("s");
+                XmlNode datum = doc.CreateElement("d");
+                datum.InnerText = sample.TimeStamp.ToString("dd.MM.yyyy HH:mm");
+                stav.AppendChild(datum);
 
-                var samples = entities.Sample.Where(
-                        s =>
-                            s.Id_Station == spot && s.TimeStamp >= startDate && s.TimeStamp <= stopDate &&
-                            s.Level.HasValue)
-                        .OrderBy(s => s.TimeStamp);
+                XmlNode prutok = doc.CreateElement("p");
+                prutok.InnerText = sample.Flow.HasValue ? sample.Flow.ToString() : "";
+                stav.AppendChild(prutok);
 
-                foreach(var sample in samples)
-                {
-                    XmlNode stav = doc.CreateElement("s");
-                    XmlNode datum = doc.CreateElement("d");
-                    datum.InnerText = sample.TimeStamp.ToString("dd.MM.yyyy HH:mm");
-                    stav.AppendChild(datum);
+                XmlNode vyska = doc.CreateElement("v");
+                vyska.InnerText = sample.Level.HasValue ? Convert.ToInt32(sample.Level).ToString() : "";
+                stav.AppendChild(vyska);
 
-                    XmlNode prutok = doc.CreateElement("p");
-                    prutok.InnerText = sample.Flow.HasValue ? sample.Flow.ToString() : "";
-                    stav.AppendChild(prutok);
+                XmlNode teplota = doc.CreateElement("t");
+                teplota.InnerText = sample.Temperature.HasValue ? sample.Temperature.ToString() : "";
+                stav.AppendChild(teplota);
 
-                    XmlNode vyska = doc.CreateElement("v");
-                    vyska.InnerText = sample.Level.HasValue ? Convert.ToInt32(sample.Level).ToString() : "";
-                    stav.AppendChild(vyska);
-
-                    XmlNode teplota = doc.CreateElement("t");
-                    teplota.InnerText = sample.Temperature.HasValue ? sample.Temperature.ToString() : "";
-                    stav.AppendChild(teplota);
-
-                    stavy.AppendChild(stav);
-                }
-
-                var spa1 = doc.CreateAttribute("spa1");
-                spa1.Value = stationEntity.Spa1.HasValue ? stationEntity.Spa1.ToString() : "";
-                stavy.Attributes.Append(spa1);
-
-                var spa2 = doc.CreateAttribute("spa2");
-                spa2.Value = stationEntity.Spa2.HasValue ? stationEntity.Spa2.ToString() : "";
-                stavy.Attributes.Append(spa2);
-
-                var spa3 = doc.CreateAttribute("spa3");
-                spa3.Value = stationEntity.Spa3.HasValue ? stationEntity.Spa3.ToString() : "";
-                stavy.Attributes.Append(spa3);
-
-                doc.AppendChild(stavy);
-
-                return Content(doc.OuterXml, "text/xml");
+                stavy.AppendChild(stav);
             }
+
+            var spa1 = doc.CreateAttribute("spa1");
+            spa1.Value = stationEntity.Spa1.HasValue ? stationEntity.Spa1.ToString() : "";
+            stavy.Attributes.Append(spa1);
+
+            var spa2 = doc.CreateAttribute("spa2");
+            spa2.Value = stationEntity.Spa2.HasValue ? stationEntity.Spa2.ToString() : "";
+            stavy.Attributes.Append(spa2);
+
+            var spa3 = doc.CreateAttribute("spa3");
+            spa3.Value = stationEntity.Spa3.HasValue ? stationEntity.Spa3.ToString() : "";
+            stavy.Attributes.Append(spa3);
+
+            doc.AppendChild(stavy);
+
+            return Content(doc.OuterXml, "text/xml");
         }
 
         private DateTime ParseDateTime2(string text)
@@ -274,6 +222,5 @@ namespace Hydra2.Web.Controllers
 
             return new DateTime(year, month, day);
         }
-
     }
 }

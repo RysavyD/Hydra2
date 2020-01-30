@@ -1,24 +1,32 @@
 ﻿using System.Linq;
 using System.Web.Mvc;
 using Hydra2.DownLoaders;
-using Hydra2.Model;
 using Hydra2.Web.Models;
 using System;
+using System.Configuration;
 using NLog;
 using System.Reflection;
+using Hydra2.Service;
 
 namespace Hydra2.Web.Controllers
 {
     public class AdmController : Controller
     {
+        private readonly AdminService _adminService;
+        private readonly DataService _dataService;
+
+        public AdmController()
+        {
+            var conn = ConfigurationManager.ConnectionStrings["Hydra2Connection"].ConnectionString;
+            _adminService = new AdminService(conn);
+            _dataService = new DataService(conn);
+        }
+
         public ActionResult Index()
         {
-            NLogger.Log(NLog.LogLevel.Info, "Adm.Index");
+            NLogger.Log(LogLevel.Info, "Adm.Index");
 
-            using (var entities = new Hydra2Entities())
-            {
-                ViewBag.samplesCount = entities.Sample.Count();
-            }
+            ViewBag.samplesCount = _adminService.GetSamplesCount();
 
             var ci = System.Threading.Thread.CurrentThread.CurrentCulture;
             ViewBag.culture = ci.CompareInfo.Name + " - " + ci.DisplayName;
@@ -29,83 +37,68 @@ namespace Hydra2.Web.Controllers
 
         public ActionResult SpotOverView(bool samples = false)
         {
-            SpotOverviewViewModel[] model;
-            using (var entities = new Hydra2Entities())
-            {
-                if (samples)
-                {
-                    entities.Database.CommandTimeout = 180; // 180s
-                    model = entities.Station.Select(s =>
+            var model = samples
+                ? _adminService.GetSpotOverviewWitSamples().Select(s =>
                         new SpotOverviewViewModel
                         {
-                            RiverName = s.River.Name,
+                            Id = s.Id,
+                            RiverName = s.Name,
                             SpotName = s.Spot,
                             SpotType = s.Type,
                             Url = s.Link,
-                            LastSample = s.Sample.OrderByDescending(sm => sm.TimeStamp).FirstOrDefault().TimeStamp
+                            LastSample = s.LastSample
                         })
-                        .OrderBy(s => s.LastSample)
-                        .ToArray();
-                }
-                else
-                {
-                    model = entities.Station.Select(s =>
-                         new SpotOverviewViewModel
-                         {
-                            RiverName = s.River.Name,
+                    .OrderBy(s => s.LastSample)
+                    .ToArray()
+                : _adminService.GetSpotOverview().Select(s =>
+                        new SpotOverviewViewModel
+                        {
+                            Id = s.Id,
+                            RiverName = s.Name,
                             SpotName = s.Spot,
                             SpotType = s.Type,
                             Url = s.Link,
-                         })
-                        .OrderBy(s => s.RiverName)
-                        .ThenBy(s => s.SpotName)
-                        .ToArray();
-                }
-            }
+                        })
+                    .OrderBy(s => s.RiverName)
+                    .ThenBy(s => s.SpotName)
+                    .ToArray();
+
             return View(model);
         }
 
         public DateTime GetLastSample(int id)
         {
-            using (var entities = new Hydra2Entities())
-            {
-                var station = entities.Station.FirstOrDefault(s => s.Id == id);
-                var lastSample = station.Sample.OrderByDescending(s => s.TimeStamp).FirstOrDefault();
-                return lastSample.TimeStamp;
-            }
+            return _adminService.GetLastSample(id);
         }
 
         public ViewResult GetStationOverView(int id)
         {
             try
             {
-                using (var entities = new Hydra2Entities())
+                var station = _dataService.GetStation(id);
+                if (station == null)
                 {
-                    var station = entities.Station.FirstOrDefault(s => s.Id == id);
-                    if (station == null)
-                    {
-                        ViewBag.Note = $"Stanice s id={id} nenalezena";
-                        return View();
-                    }
-
-                    NLogger.Log(LogLevel.Info, "Stanice: " + station.Spot);
-
-                    var downloader = Update.GetDownloader(station.DownLoadType);
-
-                    NLogger.Log(LogLevel.Debug, "DownloaderType: " + downloader.GetType());
-                    var downLoadSamples = downloader.GetRecords(station.Link);
-
-                    var sb = new System.Text.StringBuilder();
-                    foreach(var sample in downLoadSamples)
-                    {
-                        sb.AppendLine($"{sample.TimeStamp} - h:{sample.Level}, q:{sample.Flow}, t:{sample.Temperature}");
-                        sb.AppendLine("<br />");
-                    }
-
-                    ViewBag.Note = sb.ToString();
-
-                    NLogger.Log(LogLevel.Info, "Uloženo");
+                    ViewBag.Note = $"Stanice s id={id} nenalezena";
+                    return View();
                 }
+
+                NLogger.Log(LogLevel.Info, "Stanice: " + station.Spot);
+
+                var downloader = Update.GetDownloader(station.DownLoadType);
+
+                NLogger.Log(LogLevel.Debug, "DownloaderType: " + downloader.GetType());
+                var downLoadSamples = downloader.GetRecords(station.Link);
+
+                var sb = new System.Text.StringBuilder();
+                foreach (var sample in downLoadSamples)
+                {
+                    sb.AppendLine($"{sample.TimeStamp} - h:{sample.Level}, q:{sample.Flow}, t:{sample.Temperature}");
+                    sb.AppendLine("<br />");
+                }
+
+                ViewBag.Note = sb.ToString();
+
+                NLogger.Log(LogLevel.Info, "Uloženo");
             }
             catch (Exception ex)
             {
@@ -125,7 +118,7 @@ namespace Hydra2.Web.Controllers
         [HttpPost, ValidateAntiForgeryToken, ActionName("HandUpdate")]
         public ActionResult HandUpdatePost(int stationId)
         {
-            NLogger.Log(NLog.LogLevel.Info, "Ručně aktualizuji záznam s Id:" + stationId);
+            NLogger.Log(LogLevel.Info, "Ručně aktualizuji záznam s Id:" + stationId);
 
             Update.UpdateSpots(stationId, stationId);
             return View();
