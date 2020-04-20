@@ -11,12 +11,13 @@ namespace Hydra2.Web.Controllers
 {
     public class GrafController : Controller
     {
-        private readonly DataService _dataService;
+        private readonly IDataService _dataService;
 
         public GrafController()
         {
             var conn = ConfigurationManager.ConnectionStrings["Hydra2Connection"].ConnectionString;
             _dataService = new DataService(conn);
+            //_dataService = new FakeDataService();
         }
 
         public ActionResult Index()
@@ -86,47 +87,6 @@ namespace Hydra2.Web.Controllers
 
             return Json(result, JsonRequestBehavior.AllowGet);
         }
-
-        //private Sample[] GetSamples(string type, int spot, DateTime startDate, DateTime stopDate)
-        //{
-        //    var useLevel = type.Contains("h");
-        //    var useFlow = type.Contains("Q");
-        //    var useTemperature = type.Contains("t");
-
-        //    var hours = (int)(stopDate - startDate).TotalHours;
-        //    var result = new Sample[hours];
-        //    var random1 = new Random();
-        //    var random2 = new Random(random1.Next(0, 25000));
-        //    var random3 = new Random(random1.Next(0, 55000));
-
-        //    var lastLevel = 100f;
-        //    var lastFlow = 8.5f;
-        //    var lastTemperature = 3.5f;
-
-        //    for (int i = 0; i < hours; i++)
-        //    {
-        //        var rand1 = random1.NextDouble();
-        //        var rand2 = random2.NextDouble();
-        //        var rand3 = random3.NextDouble();
-        //        var nextLevel = Convert.ToSingle(lastLevel + lastLevel * ((rand1 - 0.5) / 5));
-        //        var nextFlow = Convert.ToSingle(lastFlow + lastFlow * ((rand2 - 0.5) / 5));
-        //        var nextTemperature = Convert.ToSingle(lastTemperature + lastTemperature * ((rand3 - 0.5) / 5));
-        //        result[i] = new Sample
-        //        {
-        //            Date = startDate.AddHours(i).ToString("yyyy-MM-dd HH:mm"),
-        //            h = useLevel ? nextLevel : (float?)null,
-        //            Q = useFlow ? nextFlow : (float?)null,
-        //            t = useTemperature ? nextTemperature : (float?)null
-        //        };
-
-        //        lastLevel = nextLevel;
-        //        lastFlow = nextFlow;
-        //        lastTemperature = nextTemperature;
-        //    }
-
-
-        //    return result;
-        //}
 
         private Sample[] GetSamples(string type, int spot, DateTime startDate, DateTime stopDate)
         {
