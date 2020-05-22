@@ -181,7 +181,7 @@
 
             // Create axes
             var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
-            dateAxis.dateFormats.setKey("day", "MMMM dt");
+            dateAxis.tooltipDateFormat = "yyyy-MM-dd HH:mm";
 
             createAxisAndSeries("h", "Hladina", false, "circle", "#009933");
             createAxisAndSeries("Q", "Průtok", true, "triangle", "#0000cc");
@@ -217,51 +217,51 @@
             var series = chart.series.push(new am4charts.LineSeries());
             series.dataFields.valueY = field;
             series.dataFields.dateX = "date";
-            series.strokeWidth = 2;
+            series.strokeWidth = 1;
             series.stroke = am4core.color(color);
             series.yAxis = valueAxis;
             series.name = name;
             series.tooltipText = "{name}: [bold]{valueY}[/]";
             series.tensionX = 0.8;
 
-            switch (bullet) {
-                case "triangle":
-                    bullet = series.bullets.push(new am4charts.Bullet());
-                    bullet.width = 6;
-                    bullet.height = 6;
-                    bullet.horizontalCenter = "middle";
-                    bullet.verticalCenter = "middle";
+            //switch (bullet) {
+            //    case "triangle":
+            //        bullet = series.bullets.push(new am4charts.Bullet());
+            //        bullet.width = 4;
+            //        bullet.height = 4;
+            //        bullet.horizontalCenter = "middle";
+            //        bullet.verticalCenter = "middle";
 
-                    var triangle = bullet.createChild(am4core.Triangle);
-                    triangle.stroke = am4core.color(color);
-                    triangle.fill = am4core.color(color);
-                    triangle.strokeWidth = 1;
-                    triangle.direction = "top";
-                    triangle.width = 6;
-                    triangle.height = 6;
-                    break;
-                case "rectangle":
-                    bullet = series.bullets.push(new am4charts.Bullet());
-                    bullet.width = 6;
-                    bullet.height = 6;
-                    bullet.horizontalCenter = "middle";
-                    bullet.verticalCenter = "middle";
+            //        var triangle = bullet.createChild(am4core.Triangle);
+            //        triangle.stroke = am4core.color(color);
+            //        triangle.fill = am4core.color(color);
+            //        triangle.strokeWidth = 1;
+            //        triangle.direction = "top";
+            //        triangle.width = 4;
+            //        triangle.height = 4;
+            //        break;
+            //    case "rectangle":
+            //        bullet = series.bullets.push(new am4charts.Bullet());
+            //        bullet.width = 4;
+            //        bullet.height = 4;
+            //        bullet.horizontalCenter = "middle";
+            //        bullet.verticalCenter = "middle";
 
-                    var rectangle = bullet.createChild(am4core.Rectangle);
-                    rectangle.stroke = am4core.color(color);
-                    rectangle.fill = am4core.color(color);
-                    rectangle.strokeWidth = 1;
-                    rectangle.width = 6;
-                    rectangle.height = 6;
-                    break;
-                default:
-                    bullet = series.bullets.push(new am4charts.CircleBullet());
-                    bullet.circle.stroke = am4core.color(color);
-                    bullet.circle.fill = am4core.color(color);
-                    bullet.circle.radius = 3;
-                    bullet.circle.strokeWidth = 1;
-                    break;
-            }
+            //        var rectangle = bullet.createChild(am4core.Rectangle);
+            //        rectangle.stroke = am4core.color(color);
+            //        rectangle.fill = am4core.color(color);
+            //        rectangle.strokeWidth = 1;
+            //        rectangle.width = 4;
+            //        rectangle.height = 4;
+            //        break;
+            //    default:
+            //        bullet = series.bullets.push(new am4charts.CircleBullet());
+            //        bullet.circle.stroke = am4core.color(color);
+            //        bullet.circle.fill = am4core.color(color);
+            //        bullet.circle.radius = 2;
+            //        bullet.circle.strokeWidth = 1;
+            //        break;
+            //}
 
             valueAxis.renderer.line.strokeOpacity = 1;
             valueAxis.renderer.line.strokeWidth = 2;
