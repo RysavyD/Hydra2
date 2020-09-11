@@ -85,7 +85,10 @@ namespace Hydra2.Web.Controllers
                 samples
             };
 
-            return Json(result, JsonRequestBehavior.AllowGet);
+            var jsonResult = Json(result, JsonRequestBehavior.AllowGet);
+            jsonResult.MaxJsonLength = int.MaxValue;
+
+            return jsonResult;
         }
 
         private Sample[] GetSamples(string type, int spot, DateTime startDate, DateTime stopDate)
