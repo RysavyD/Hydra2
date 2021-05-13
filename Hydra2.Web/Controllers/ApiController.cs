@@ -13,7 +13,7 @@ namespace Hydra2.Web.Controllers
         {
             Update.UpdateSpots(id, id);
 
-            return Json($"Ok {id}");
+            return Json($"Ok {id}", JsonRequestBehavior.AllowGet);
         }
 
         [HttpPost]

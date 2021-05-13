@@ -60,6 +60,8 @@ namespace Hydra2.DownLoaders
 
         protected virtual void DownLoadPage()
         {
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             using (var client = new WebClient())
             {
                 client.Encoding = Encoding.UTF8;
