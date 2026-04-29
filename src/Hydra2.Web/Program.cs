@@ -1,0 +1,75 @@
+using System.Globalization;
+using Hydra2.Downloaders;
+using Hydra2.Service;
+using Hydra2.Web;
+using Hydra2.Web.Scheduler;
+using Quartz;
+using Serilog;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services)
+    .Enrich.FromLogContext());
+
+builder.Services.Configure<AuthOptions>(builder.Configuration.GetSection(AuthOptions.SectionName));
+builder.Services.Configure<SchedulerOptions>(builder.Configuration.GetSection(SchedulerOptions.SectionName));
+
+builder.Services.AddHydra2Services(builder.Configuration);
+builder.Services.AddHydra2Downloaders();
+
+builder.Services.AddSingleton<SchedulerStateTracker>();
+builder.Services.AddSingleton<IUpdateProgressListener, TrackerProgressListener>();
+
+builder.Services.AddControllersWithViews();
+
+var schedulerOptions = builder.Configuration
+    .GetSection(SchedulerOptions.SectionName)
+    .Get<SchedulerOptions>() ?? new SchedulerOptions();
+
+builder.Services.AddQuartz(q =>
+{
+    if (schedulerOptions.EnableLastSpotsLoop)
+    {
+        var jobKey = new JobKey("UpdateLastJob");
+        q.AddJob<UpdateLastJob>(opts => opts.WithIdentity(jobKey));
+        q.AddTrigger(opts => opts
+            .ForJob(jobKey)
+            .WithIdentity("TriggerLastUpdate")
+            .StartNow());
+    }
+});
+
+builder.Services.AddQuartzHostedService(opts =>
+{
+    opts.WaitForJobsToComplete = true;
+});
+
+var app = builder.Build();
+
+var supportedCultures = new[] { new CultureInfo("cs-CZ"), new CultureInfo("en-GB") };
+app.UseRequestLocalization(new Microsoft.AspNetCore.Builder.RequestLocalizationOptions
+{
+    DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture("cs-CZ"),
+    SupportedCultures = supportedCultures,
+    SupportedUICultures = supportedCultures,
+});
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
+
+app.UseSerilogRequestLogging();
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
+app.UseAuthorization();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.Run();

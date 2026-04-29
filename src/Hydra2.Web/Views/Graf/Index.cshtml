@@ -1,0 +1,405 @@
+@model Hydra2.Web.Models.GrafViewModel
+
+@{
+    ViewBag.Title = "Graf";
+}
+
+<link rel="stylesheet" href="~/lib/daterangepicker/daterangepicker.css" />
+<div style="margin-top: 2em;" class="row">
+    <div class="col-md-12" border>
+        <h4>Údaje z většiny stanic jsou zaznamenávané od 29. 7. 2012. Pokud zvolíte starší datum, nebudou vrácena žádná data.</h4>
+    </div>
+</div>
+<div style="margin-top: 2em;" class="row">
+    <div class="col-md-3 border">
+        <h4>Tok</h4>
+        @Html.DropDownList("river", Model.Rivers)
+    </div>
+    <div class="col-md-3 border">
+        <h4>Stanice</h4>
+        <select id="spot"></select>
+    </div>
+    <div class="col-md-3 rangeinput border">
+        <h4>Začátek</h4>
+        <input class="form-control" id="start" type="text" value="@Model.StartDate">
+        <i class="glyphicon glyphicon-calendar fa fa-calendar" style="position: absolute; bottom: 20px; right: 24px; top:auto; cursor: pointer;"></i>
+    </div>
+    <div class="col-md-3 rangeinput border">
+        <h4>Konec</h4>
+        <input class="form-control" id="stop" type="text" value="@Model.StopDate">
+        <i class="glyphicon glyphicon-calendar fa fa-calendar" style="position: absolute; bottom: 20px; right: 24px; top:auto; cursor: pointer;"></i>
+    </div>
+</div>
+<div style="margin-top: 2em;" class="row">
+    <div class="col-md-3" border>
+        <h4>Sledované veličiny</h4>
+        <input type="checkbox" name="type" id="h" value="h" title="h" checked="checked" /> Hladina
+        <input type="checkbox" name="type" id="Q" value="Q" title="Q" checked="checked" /> Průtok
+        <input type="checkbox" name="type" id="t" value="t" title="t" /> Teplota
+    </div>
+    <div class="col-md-3 border">
+        <div style="padding-top: 10px;">
+            <div id="Reload" class="btn btn-success btn-lg">Načíst data</div>
+        </div>
+    </div>
+</div>
+<div style="margin-top: 2em; display: none;" class="row" id="riverInformation">
+    <div class="col-md-12">
+        <table style="width:100%">
+            <tbody>
+                <tr>
+                    <th colspan="4">Limity pro stupně povodňové aktivity</th>
+                </tr>
+                <tr>
+                    <th>1. stupeň</th>
+                    <td><strong>H</strong> = <span id="river1"></span> [cm]</td>
+                    <td style="width:20px;"><div style="background-color:#00FF00;" class="informBox"></div></td>
+                    <td>1.SPA (bdělost)</td>
+                </tr>
+                <tr>
+                    <th>2. stupeň</th>
+                    <td><strong>H</strong> = <span id="river2"></span> [cm]</td>
+                    <td style="width:20px;"><div style="background-color:#FFFF00;" class="informBox"></div></td>
+                    <td>2.SPA (pohotovost)</td>
+                </tr>
+                <tr>
+                    <th>3. stupeň</th>
+                    <td><strong>H</strong> = <span id="river3"></span> [cm]</td>
+                    <td style="width:20px;"><div style="background-color:#FF0000;" class="informBox"></div></td>
+                    <td>3.SPA (ohrožení)</td>
+                </tr>
+                <tr>
+                    <th>3. stupeň</th>
+                    <td><strong>H</strong> = <span id="river3e"></span> [cm]</td>
+                    <td style="width:20px;"><div style="background-color:#FF0000;" class="informBox"></div></td>
+                    <td>3.SPA (extrémní povodeň)</td>
+                </tr>
+                <tr>
+                    <th>Sucho</th>
+                    <td><strong>H</strong> = <span id="river0"></span> [cm]</td>
+                    <td style="width:20px;"><div style="background-color:#cceeff;" class="informBox"></div></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th>Odkaz na měřící stanici</th>
+                    <td colspan="4"><a href="#" target="_blank" id="riverLink"></a></td>
+                </tr>
+                <tr>
+                    <th>Odkaz na raft.cz s informacemi o toku</th>
+                    <td colspan="4"><a href="#" target="_blank" id="raftLink"></a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div style="margin-top: 2em; display: none;" class="row" id="reservoirInformation">
+    <div class="col-md-12">
+        <table class="tabulkaStaniceMereni">
+            <tbody>
+                <tr>
+                    <td>Koruna hráze:</td>
+                    <td><span id="korunaHrazeLbl"></span> [m n.m.]</td>
+                </tr>
+                <tr>
+                    <td style="color: #ff8040;">Kóta přelivu:</td>
+                    <td><span id="kotaPrelivuLbl"></span> [m n.m.]</td>
+                </tr>
+                <tr>
+                    <td style="color: #ff0000;">Maximální retenční hladina:</td>
+                    <td><span id="maxRetHladinaLbl"></span> [m n.m.]</td>
+                </tr>
+                <tr>
+                    <td style="color: #008000;">Hladina zásobního prostoru:</td>
+                    <td><span id="hladZasProstLbl"></span> [m n.m.]</td>
+                </tr>
+                <tr>
+                    <td style="color: #ff00ff;">Hladina stálého nadržení:</td>
+                    <td><span id="hladStalNadtLbl"></span> [m n.m.]</td>
+                </tr>
+                <tr>
+                    <td>Odkaz na stanici</td>
+                    <td><a href="#" id="reservoirLink"></a></td>
+                </tr>
+                <tr>
+                    <th>Odkaz na raft.cz</th>
+                    <td><a href="#" target="_blank" id="raftLink2"></a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div style="margin-top: 2em;" class="row">
+    <div class="col-md-12">
+        <div id="chartdiv" style="width:100%; height:600px;"></div>
+    </div>
+    <div class="col-md-12">
+        <table id="dataTable" class="dataTable"></table>
+    </div>
+</div>
+
+@section scripts {
+    <script src="https://www.amcharts.com/lib/4/core.js"></script>
+    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+    <script src="//www.amcharts.com/lib/4/lang/cs_CZ.js"></script>
+
+    <script src="~/lib/daterangepicker/moment.min.js"></script>
+    <script src="~/lib/daterangepicker/daterangepicker.js"></script>
+
+    <script>
+        var chart;
+
+        function CreateGraph(data) {
+            am4core.useTheme(am4themes_animated);
+            chart = am4core.create("chartdiv", am4charts.XYChart);
+            chart.colors.step = 2;
+            chart.data = generateChartData(data);
+
+            chart.language.locale = am4lang_cs_CZ;
+
+            var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+            dateAxis.tooltipDateFormat = "yyyy-MM-dd HH:mm";
+
+            createAxisAndSeries("h", "Hladina", false, "circle", "#009933");
+            createAxisAndSeries("Q", "Průtok", true, "triangle", "#0000cc");
+            createAxisAndSeries("t", "Teplota", true, "rectangle", "#cc0000");
+
+            chart.legend = new am4charts.Legend();
+            chart.cursor = new am4charts.XYCursor();
+        }
+
+        function generateChartData(data) {
+            var chartData = [];
+            $.each(data, function (i, item) {
+                chartData.push({
+                    date: new Date(item.Date),
+                    h: item.h,
+                    Q: item.Q,
+                    t: item.t
+                });
+            });
+            return chartData;
+        }
+
+        function createAxisAndSeries(field, name, opposite, bullet, color) {
+            var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+            var series = chart.series.push(new am4charts.LineSeries());
+            series.dataFields.valueY = field;
+            series.dataFields.dateX = "date";
+            series.strokeWidth = 1;
+            series.stroke = am4core.color(color);
+            series.yAxis = valueAxis;
+            series.name = name;
+            series.tooltipText = "{name}: [bold]{valueY}[/]";
+            series.tensionX = 0.8;
+
+            valueAxis.renderer.line.strokeOpacity = 1;
+            valueAxis.renderer.line.strokeWidth = 2;
+            valueAxis.renderer.line.stroke = am4core.color(color);
+            valueAxis.renderer.labels.template.fill = series.stroke;
+            valueAxis.renderer.opposite = opposite;
+            valueAxis.renderer.grid.template.disabled = true;
+        }
+    </script>
+    <script>
+        $("#river").change(function() {
+            ShowWaitDialog();
+            riverId = $("#river").val();
+            spotId = undefined;
+            setUrlHashes();
+
+            $.ajax({
+                type: "GET",
+                url: '@Url.Content("~/Graf/GetSpots/")' + $("#river").val(),
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                success: function(result) {
+                    var sel = $("#spot");
+                    sel.empty();
+                    for (var i = 0; i < result.length; i++) {
+                        sel.append('<option value="' + result[i].id + '">' + result[i].name + '</option>');
+                    }
+                    if (result.length === 1) {
+                        spotId = result[0].id;
+                        setUrlHashes();
+                    }
+                    HideWaitDialog();
+                },
+                error: function(xhr) {
+                    HideWaitDialog();
+                    alert("Nastala chyba \n\n" + xhr.responseText);
+                }
+            });
+        });
+
+        $("#spot").change(function() {
+            spotId = $("#spot").val();
+            setUrlHashes();
+        });
+
+        $('.rangeinput i').click(function() {
+            $(this).parent().find('input').click();
+        });
+
+        var dateRangeOptions = {
+            "showDropdowns": true,
+            "autoApply": true,
+            "locale": {
+                "format": "DD/MM/YYYY",
+                "separator": " - ",
+                "applyLabel": "Apply",
+                "cancelLabel": "Cancel",
+                "fromLabel": "From",
+                "toLabel": "To",
+                "customRangeLabel": "Custom",
+                "daysOfWeek": ["Ne","Po","Út","St","Čt","Pá","So"],
+                "monthNames": ["Leden","Únor","Březen","Duben","Květen","Červen","Červenec","Srpen","Září","Říjen","Listopad","Prosinec"],
+                "firstDay": 1
+            },
+            "singleDatePicker": true,
+            "linkedCalendars": false,
+            "autoUpdateInput": false,
+            "buttonClasses": "btn btn-lg"
+        };
+
+        $('#start').daterangepicker(dateRangeOptions, function(s) {
+            $('#start').val(s.format('DD/MM/YYYY'));
+        });
+        $('#start').on('apply.daterangepicker', function() {
+            start = $('#start').val();
+            setUrlHashes();
+        });
+
+        $('#stop').daterangepicker(dateRangeOptions, function(s) {
+            $('#stop').val(s.format('DD/MM/YYYY'));
+        });
+        $('#stop').on('apply.daterangepicker', function() {
+            stop = $('#stop').val();
+            setUrlHashes();
+        });
+
+        $("input[type=checkbox]").change(function() {
+            type = GetSampleTypes();
+            setUrlHashes();
+        });
+
+        $("#Reload").click(function() {
+            var spot = $("#spot option:selected");
+            if (spot.text() == '') { alert('Není vybrána žádná stanice!'); return; }
+            if (type == '') { alert('Není vybrána žádná veličina!'); return; }
+
+            ShowWaitDialog();
+            $.ajax({
+                type: "GET",
+                url: '@Url.Content("~/Graf/GetData/")',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                data: { spot: spot.val(), start: $("#start").val(), stop: $("#stop").val(), type: type },
+                success: function(result) {
+                    CreateGraph(result.samples);
+                    ShowSpotInformation(result.spot);
+                    GenerateDataTable(result.samples);
+                    HideWaitDialog();
+                },
+                error: function(xhr) {
+                    HideWaitDialog();
+                    alert("Nastala chyba \n\n" + xhr.responseText);
+                }
+            });
+        });
+
+        function ShowSpotInformation(spot) {
+            if (spot.type == 0) {
+                $("#reservoirInformation").hide();
+                $("#river0").text(spot.spa0 == null ? "" : spot.spa0);
+                $("#river1").text(spot.spa1 == null ? "" : spot.spa1);
+                $("#river2").text(spot.spa2 == null ? "" : spot.spa2);
+                $("#river3").text(spot.spa3 == null ? "" : spot.spa3);
+                $("#river3e").text(spot.spa3e == null ? "" : spot.spa3e);
+                $("#riverLink").text(spot.link).attr("href", spot.link);
+                $("#raftLink").text(spot.raftLink).attr("href", spot.raftLink);
+                $("#riverInformation").show();
+            } else {
+                $("#riverInformation").hide();
+                $("#korunaHrazeLbl").text(spot.spa3e == null ? "" : spot.spa3e);
+                $("#kotaPrelivuLbl").text(spot.spa1 == null ? "" : spot.spa1);
+                $("#maxRetHladinaLbl").text(spot.spa3 == null ? "" : spot.spa3);
+                $("#hladZasProstLbl").text(spot.spa2 == null ? "" : spot.spa2);
+                $("#hladStalNadtLbl").text(spot.spa0 == null ? "" : spot.spa0);
+                $("#reservoirLink").text(spot.link).attr("href", spot.link);
+                $("#raftLink2").text(spot.raftLink).attr("href", spot.raftLink);
+                $("#reservoirInformation").show();
+            }
+        }
+
+        function GenerateDataTable(samples) {
+            var trHTML = '<tr><td>Datum</td><td>Hladina</td><td>Průtok</td><td>Teplota</td></tr>';
+            $.each(samples, function (i, item) {
+                trHTML += '<tr><td>' + item.Date + '</td><td>' +
+                    (item.h != null ? item.h : '') + '</td><td>' +
+                    (item.Q != null ? item.Q : '') + '</td><td>' +
+                    (item.t != null ? item.t : '') + '</td></tr>';
+            });
+            $("#dataTable").html(trHTML);
+        }
+
+        function GetSampleTypes() {
+            var selectedTypes = '';
+            $.each($("input[type=checkbox]:checked"), function () {
+                selectedTypes += $(this).val();
+            });
+            return selectedTypes;
+        }
+
+        var riverId, spotId, start, stop, type;
+
+        $(document).ready(function() {
+            var hashes = window.location.hash.split('#');
+            var needLoad = false;
+
+            if (hashes.length > 1 && $.isNumeric(hashes[1])) riverId = hashes[1];
+            if (hashes.length > 2) { spotId = hashes[2]; needLoad = true; }
+            start = hashes.length > 3 ? hashes[3] : $("#start").val();
+            stop = hashes.length > 4 ? hashes[4] : $("#stop").val();
+            if (hashes.length > 5) {
+                type = hashes[5];
+                $("#h").prop('checked', type.includes('h'));
+                $("#Q").prop('checked', type.includes('Q'));
+                $("#t").prop('checked', type.includes('t'));
+            } else {
+                type = GetSampleTypes();
+            }
+
+            if (needLoad) {
+                ShowWaitDialog();
+                $("#river").val(riverId);
+                $("#start").val(start);
+                $("#stop").val(stop);
+
+                $.ajax({
+                    type: "GET",
+                    url: '@Url.Content("~/Graf/GetSpots/")' + riverId,
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
+                    success: function(result) {
+                        var sel = $("#spot");
+                        sel.empty();
+                        for (var i = 0; i < result.length; i++) {
+                            sel.append('<option value="' + result[i].id + '">' + result[i].name + '</option>');
+                        }
+                        $("#spot").val(spotId);
+                        $("#Reload").click();
+                    },
+                    error: function() { HideWaitDialog(); }
+                });
+            }
+        });
+
+        function setUrlHashes() {
+            if ($.isNumeric(riverId) && $.isNumeric(spotId)) {
+                var newHash = riverId + '#' + spotId + '#' + (start || '') + '#' + (stop || '') + '#' + (type || '');
+                window.location.hash = newHash;
+            }
+        }
+    </script>
+}
