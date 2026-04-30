@@ -30,6 +30,9 @@ public class FakeDataService : IDataService
     public Task<IEnumerable<Station>> GetStationsAsync(int riverId, CancellationToken cancellationToken = default)
         => Task.FromResult(_stations.Where(s => s.Id_River == riverId));
 
+    public Task<IReadOnlyList<Station>> GetStationsByDownLoadTypeAsync(int downLoadType, CancellationToken cancellationToken = default)
+        => Task.FromResult<IReadOnlyList<Station>>(_stations.Where(s => s.DownLoadType == downLoadType).ToList());
+
     public Task<Station?> GetStationAsync(int stationId, CancellationToken cancellationToken = default)
         => Task.FromResult(_stations.FirstOrDefault(s => s.Id == stationId));
 

@@ -40,14 +40,26 @@ var schedulerOptions = builder.Configuration
 
 builder.Services.AddQuartz(q =>
 {
-    if (schedulerOptions.EnableLastSpotsLoop)
+    foreach (var (name, source) in schedulerOptions.Sources)
     {
-        var jobKey = new JobKey("UpdateLastJob");
-        q.AddJob<UpdateLastJob>(opts => opts.WithIdentity(jobKey));
+        if (!source.Enabled || string.IsNullOrWhiteSpace(source.Cron)) continue;
+
+        var jobKey = new JobKey($"source-{name}", "sources");
+        q.AddJob<SourceUpdateJob>(opts => opts
+            .WithIdentity(jobKey)
+            .UsingJobData(SourceUpdateJob.DownLoadTypeKey, source.DownLoadType)
+            .StoreDurably());
+
         q.AddTrigger(opts => opts
             .ForJob(jobKey)
-            .WithIdentity("TriggerLastUpdate")
-            .StartNow());
+            .WithIdentity($"trigger-{name}", "sources")
+            .WithCronSchedule(source.Cron, cron =>
+            {
+                if (string.Equals(source.Misfire, "Ignore", StringComparison.OrdinalIgnoreCase))
+                    cron.WithMisfireHandlingInstructionDoNothing();
+                else
+                    cron.WithMisfireHandlingInstructionFireAndProceed();
+            }));
     }
 });
 

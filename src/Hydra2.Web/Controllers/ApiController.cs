@@ -58,13 +58,20 @@ public class ApiController : Controller
         }
     }
 
+    /// <summary>
+    /// DEPRECATED: legacy endpoint kept for backward compatibility with old cron-job.org pings.
+    /// Maps to a single station update of the current Config counter. Use /api/jobs/trigger/{name}
+    /// for proper per-source runs and /api/heartbeat for keep-alive.
+    /// </summary>
+    [Obsolete("Use /api/jobs/trigger/{name} or /api/heartbeat instead.")]
     public async Task<IActionResult> UpdateNext(string token, CancellationToken cancellationToken)
     {
         if (!IsAuthorized(token)) return Json("Bad token");
 
         try
         {
-            await _updateService.UpdateNextSpotAsync(cancellationToken);
+            var config = await _configService.GetFirstConfigAsync(cancellationToken);
+            await _updateService.UpdateStationAsync(config.Value, cancellationToken);
             return Json("OK");
         }
         catch (Exception ex)

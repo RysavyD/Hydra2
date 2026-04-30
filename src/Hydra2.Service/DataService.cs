@@ -39,6 +39,18 @@ public class DataService : IDataService
             cancellationToken: cancellationToken));
     }
 
+    public async Task<IReadOnlyList<Station>> GetStationsByDownLoadTypeAsync(int downLoadType, CancellationToken cancellationToken = default)
+    {
+        await using var connection = new SqlConnection(_connectionString);
+        var rows = await connection.QueryAsync<Station>(new CommandDefinition(
+            @"SELECT [Id], [Spot], [Spa_val], [Spa0], [Spa1], [Spa2], [Spa3], [Spa3e], [Type], [Link], [Id_River], [DownLoadType]
+              FROM [Hydra].[Station]
+              WHERE [DownLoadType] = @downLoadType",
+            new { downLoadType },
+            cancellationToken: cancellationToken));
+        return rows.ToList();
+    }
+
     public async Task<Station?> GetStationAsync(int stationId, CancellationToken cancellationToken = default)
     {
         await using var connection = new SqlConnection(_connectionString);

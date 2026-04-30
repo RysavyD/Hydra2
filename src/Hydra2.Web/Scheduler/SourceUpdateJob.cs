@@ -5,18 +5,20 @@ using Quartz;
 namespace Hydra2.Web.Scheduler;
 
 [DisallowConcurrentExecution]
-public class UpdateLastJob : IJob
+public class SourceUpdateJob : IJob
 {
+    public const string DownLoadTypeKey = "downLoadType";
+
     private readonly IUpdateService _updateService;
     private readonly SchedulerStateTracker _stateTracker;
     private readonly IHostApplicationLifetime _lifetime;
-    private readonly ILogger<UpdateLastJob> _logger;
+    private readonly ILogger<SourceUpdateJob> _logger;
 
-    public UpdateLastJob(
+    public SourceUpdateJob(
         IUpdateService updateService,
         SchedulerStateTracker stateTracker,
         IHostApplicationLifetime lifetime,
-        ILogger<UpdateLastJob> logger)
+        ILogger<SourceUpdateJob> logger)
     {
         _updateService = updateService;
         _stateTracker = stateTracker;
@@ -26,7 +28,13 @@ public class UpdateLastJob : IJob
 
     public async Task Execute(IJobExecutionContext context)
     {
-        _logger.LogInformation("UpdateLastJob Start");
+        if (!context.JobDetail.JobDataMap.TryGetIntValue(DownLoadTypeKey, out var downLoadType))
+        {
+            _logger.LogError("SourceUpdateJob {Key} missing JobDataMap entry '{DataKey}'",
+                context.JobDetail.Key, DownLoadTypeKey);
+            return;
+        }
+
         _stateTracker.MarkLoopStarted();
         try
         {
@@ -34,12 +42,21 @@ public class UpdateLastJob : IJob
                 context.CancellationToken,
                 _lifetime.ApplicationStopping);
 
-            await _updateService.LastSpotsLoopAsync(linkedCts.Token);
+            await _updateService.UpdateSourceAsync(downLoadType, linkedCts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            // graceful shutdown
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "SourceUpdateJob {Key} failed unexpectedly",
+                context.JobDetail.Key);
         }
         finally
         {
             _stateTracker.MarkLoopStopped();
-            _logger.LogInformation("UpdateLastJob End");
         }
     }
 }

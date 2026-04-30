@@ -1,144 +1,124 @@
 using System.Globalization;
 using Hydra2.Service;
+using Hydra2.Service.Data;
 using Microsoft.Extensions.Logging;
 
 namespace Hydra2.Downloaders;
 
 public class UpdateService : IUpdateService
 {
-    private const int MaxStationId = 650;
-
     private readonly IDataService _dataService;
-    private readonly IConfigService _configService;
     private readonly IDownloaderFactory _downloaderFactory;
     private readonly IUpdateProgressListener _progressListener;
-    private readonly ICycleStats _cycleStats;
     private readonly IStationErrorTracker _errorTracker;
+    private readonly ISourceStateTracker _sourceStateTracker;
     private readonly ILogger<UpdateService> _logger;
 
     public UpdateService(
         IDataService dataService,
-        IConfigService configService,
         IDownloaderFactory downloaderFactory,
         IUpdateProgressListener progressListener,
-        ICycleStats cycleStats,
         IStationErrorTracker errorTracker,
+        ISourceStateTracker sourceStateTracker,
         ILogger<UpdateService> logger)
     {
         _dataService = dataService;
-        _configService = configService;
         _downloaderFactory = downloaderFactory;
         _progressListener = progressListener;
-        _cycleStats = cycleStats;
         _errorTracker = errorTracker;
+        _sourceStateTracker = sourceStateTracker;
         _logger = logger;
+    }
+
+    public async Task<SourceRunOutcome> UpdateSourceAsync(int downLoadType, CancellationToken cancellationToken = default)
+    {
+        var sourceName = SourceCatalog.NameFor(downLoadType);
+        CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("cs-CZ");
+
+        var stations = await _dataService.GetStationsByDownLoadTypeAsync(downLoadType, cancellationToken);
+
+        _sourceStateTracker.RecordRunStarted(downLoadType, stations.Count);
+        _logger.LogInformation(
+            "Source {Source} run started ({StationCount} stations)",
+            sourceName, stations.Count);
+
+        var ok = 0;
+        var errors = 0;
+        var samplesAdded = 0;
+        string? lastErrorMessage = null;
+
+        foreach (var station in stations)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var (stationOk, stationSamples, stationError) = await UpdateStationCoreAsync(station, cancellationToken);
+            if (stationOk) { ok++; samplesAdded += stationSamples; }
+            else { errors++; lastErrorMessage = stationError ?? lastErrorMessage; }
+        }
+
+        var outcome = errors switch
+        {
+            0 => SourceRunOutcome.Success,
+            _ when ok == 0 => SourceRunOutcome.Failure,
+            _ => SourceRunOutcome.PartialFailure,
+        };
+
+        _sourceStateTracker.RecordRunCompleted(downLoadType, outcome, ok, errors, samplesAdded, lastErrorMessage);
+
+        _logger.LogInformation(
+            "Source {Source} run complete: outcome={Outcome}, {Ok} ok, {Errors} errors, {Samples} samples added",
+            sourceName, outcome, ok, errors, samplesAdded);
+
+        return outcome;
+    }
+
+    public async Task UpdateStationAsync(int stationId, CancellationToken cancellationToken = default)
+    {
+        CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("cs-CZ");
+        var station = await _dataService.GetStationAsync(stationId, cancellationToken);
+        if (station is null)
+        {
+            _logger.LogWarning("Station {StationId} not found", stationId);
+            return;
+        }
+        await UpdateStationCoreAsync(station, cancellationToken);
     }
 
     public async Task UpdateSpotsAsync(int startIndex, int stopIndex, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Manual update {Start}-{Stop} started", startIndex, stopIndex);
-        CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("cs-CZ");
-
         for (var i = startIndex; i <= stopIndex; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            await UpdateSingleStationAsync(i, cancellationToken);
+            await UpdateStationAsync(i, cancellationToken);
         }
-
         _logger.LogInformation("Manual update {Start}-{Stop} finished", startIndex, stopIndex);
     }
 
-    public async Task LastSpotsLoopAsync(CancellationToken cancellationToken)
+    private async Task<(bool Ok, int SamplesAdded, string? ErrorMessage)> UpdateStationCoreAsync(Station station, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Update loop started");
-        CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("cs-CZ");
-
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            try
-            {
-                await UpdateNextSpotAsync(cancellationToken);
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unhandled error in update loop iteration");
-            }
-        }
-
-        _logger.LogInformation("Update loop stopped");
-    }
-
-    public async Task UpdateNextSpotAsync(CancellationToken cancellationToken = default)
-    {
-        var config = await _configService.GetFirstConfigAsync(cancellationToken);
-
-        var nextValue = config.Value + 1;
-        var cycleWrapped = false;
-        if (nextValue > MaxStationId)
-        {
-            nextValue = 0;
-            cycleWrapped = true;
-        }
-
-        await _configService.UpdateConfigAsync(config.Id, nextValue, cancellationToken);
-
-        if (cycleWrapped)
-        {
-            EmitCycleSummary();
-        }
-
-        await UpdateSingleStationAsync(nextValue, cancellationToken);
-    }
-
-    private void EmitCycleSummary()
-    {
-        var snapshot = _cycleStats.CompleteCycle();
-        if (snapshot is null) return;
-
-        _logger.LogInformation(
-            "Cycle complete: {Attempts} attempts, {Ok} ok, {Skipped} skipped, {Errors} errors, {Samples} samples added, took {Duration}",
-            snapshot.Attempts,
-            snapshot.Ok,
-            snapshot.Skipped,
-            snapshot.Errors,
-            snapshot.SamplesAdded,
-            snapshot.Duration.ToString(@"hh\:mm\:ss"));
-    }
-
-    private async Task UpdateSingleStationAsync(int stationId, CancellationToken cancellationToken)
-    {
+        var stationId = station.Id;
         _progressListener.OnIterationStarted(stationId);
-        var outcome = IterationOutcome.Skipped;
-        var samplesAdded = 0;
 
         try
         {
-            var station = await _dataService.GetStationAsync(stationId, cancellationToken);
-            if (station is null) return;
-
             _logger.LogDebug("Updating station {StationId} ({Spot})", stationId, station.Spot);
 
             var downloader = _downloaderFactory.GetDownloader(station.DownLoadType);
             if (downloader is null)
             {
                 _logger.LogWarning("Station {StationId} has unknown DownLoadType {Type}", stationId, station.DownLoadType);
-                outcome = IterationOutcome.Error;
-                return;
+                return (false, 0, $"Unknown DownLoadType {station.DownLoadType}");
             }
 
             if (string.IsNullOrEmpty(station.Link))
             {
                 _logger.LogWarning("Station {StationId} has empty Link", stationId);
-                outcome = IterationOutcome.Error;
-                return;
+                return (false, 0, "Empty Link");
             }
 
             var samples = await downloader.GetRecordsAsync(station.Link, cancellationToken);
 
+            var samplesAdded = 0;
             foreach (var sample in samples)
             {
                 samplesAdded += await _dataService.AddSampleAsync(
@@ -147,7 +127,7 @@ public class UpdateService : IUpdateService
 
             _logger.LogDebug("Station {StationId} ok, {Count} samples added", stationId, samplesAdded);
             _errorTracker.RecordSuccess(stationId);
-            outcome = IterationOutcome.Ok;
+            return (true, samplesAdded, null);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -155,7 +135,6 @@ public class UpdateService : IUpdateService
         }
         catch (Exception ex)
         {
-            outcome = IterationOutcome.Error;
             var withStack = _errorTracker.RecordError(stationId, ex);
             if (withStack)
             {
@@ -169,10 +148,10 @@ public class UpdateService : IUpdateService
                     "Station {StationId} failed: {ExceptionType}: {Message}",
                     stationId, ex.GetType().Name, ex.Message);
             }
+            return (false, 0, $"{ex.GetType().Name}: {ex.Message}");
         }
         finally
         {
-            _cycleStats.RecordIteration(stationId, outcome, samplesAdded);
             _progressListener.OnIterationCompleted(stationId);
         }
     }
