@@ -3,12 +3,21 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#222222">
+    <meta name="theme-color" content="#1a3d6e">
     <meta name="description" content="Hydra² — vodní stavy, průtoky a teploty českých řek a nádrží. Data od ČHMÚ, PVL, PLA, PMO a POH s historií od roku 2012.">
     <meta property="og:title" content="Hydra² — vodní stavy ČR" />
     <meta property="og:description" content="Vodní stavy, průtoky a teploty českých řek a nádrží. Historie od roku 2012." />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="cs_CZ" />
+
+    @* Theme preference applied SYNC before body renders to avoid FOUC. *@
+    <script src="~/js/theme-init.js" asp-append-version="true"></script>
+
+    <link rel="manifest" href="~/manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="~/icons/icon.svg" />
+    <link rel="apple-touch-icon" href="~/icons/icon.svg" />
+    <link rel="shortcut icon" href="~/favicon.ico" />
+
     <title>Hydra2 @ViewBag.Title</title>
     <link rel="stylesheet" href="~/css/site.bundle.css" asp-append-version="true" />
 </head>
@@ -29,6 +38,12 @@
                     <li><a asp-controller="Graf" asp-action="Index">Graf</a></li>
                     <li><a asp-controller="Home" asp-action="About">O stránce</a></li>
                     <li><a asp-controller="Home" asp-action="Contact">Kontakt</a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <button type="button" id="theme-toggle" class="theme-toggle"
+                                aria-label="Přepnout téma">Téma: auto</button>
+                    </li>
                 </ul>
             </div>
         </div>

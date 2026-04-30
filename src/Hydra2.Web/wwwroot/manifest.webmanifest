@@ -1,0 +1,21 @@
+{
+  "name": "Hydra2 — vodní stavy ČR",
+  "short_name": "Hydra²",
+  "description": "Vodní stavy, průtoky a teploty českých řek a nádrží.",
+  "lang": "cs",
+  "start_url": "/Graf",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#222222",
+  "theme_color": "#1a3d6e",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["weather", "navigation", "utilities"]
+}

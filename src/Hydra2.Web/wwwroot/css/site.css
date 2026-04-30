@@ -1,7 +1,86 @@
+/* ============================================================
+   Theme tokens (Phase 10 — dark mode)
+   ============================================================ */
+:root {
+    --bg: #ffffff;
+    --bg-elevated: #f5f7fa;
+    --text: #222222;
+    --text-muted: #6c757d;
+    --link: #2479f6;
+    --link-hover: #185fc3;
+    --border: #dddddd;
+    --table-stripe: #fafafa;
+    color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+    --bg: #1a1d20;
+    --bg-elevated: #25292d;
+    --text: #e6e6e6;
+    --text-muted: #a8b0b8;
+    --link: #66a8ff;
+    --link-hover: #a0c8ff;
+    --border: #3a3f44;
+    --table-stripe: #22262a;
+    color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --bg: #1a1d20;
+        --bg-elevated: #25292d;
+        --text: #e6e6e6;
+        --text-muted: #a8b0b8;
+        --link: #66a8ff;
+        --link-hover: #a0c8ff;
+        --border: #3a3f44;
+        --table-stripe: #22262a;
+        color-scheme: dark;
+    }
+}
+
 body {
     padding-top: 50px;
     padding-bottom: 20px;
+    background-color: var(--bg);
+    color: var(--text);
 }
+
+a, a:visited { color: var(--link); }
+a:hover, a:focus { color: var(--link-hover); }
+
+input, select, textarea {
+    background-color: var(--bg-elevated);
+    color: var(--text);
+    border-color: var(--border);
+}
+
+table { color: var(--text); }
+.dataTable, .dataTable tr, .dataTable td {
+    border-color: var(--border) !important;
+}
+.dataTable tr:nth-child(odd) td { background-color: var(--table-stripe); }
+
+.jumbotron {
+    background-color: var(--bg-elevated);
+    color: var(--text);
+}
+
+/* Theme toggle button in navbar */
+.theme-toggle {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: #ffffff;
+    padding: 6px 12px;
+    margin: 8px 0;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    line-height: 1;
+}
+.theme-toggle:hover { background: rgba(255, 255, 255, 0.1); }
+.theme-toggle:focus-visible { outline-offset: 1px; }
+
 
 /* Set padding to keep content from hitting the edges */
 .body-content {
