@@ -95,3 +95,7 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+// Make the implicit Program class accessible to WebApplicationFactory in tests.
+public partial class Program;
+

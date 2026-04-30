@@ -4,20 +4,28 @@ namespace Hydra2.Downloaders;
 
 public class StationErrorTracker : IStationErrorTracker
 {
-    private static readonly TimeSpan StackTraceThrottle = TimeSpan.FromHours(1);
-
+    private readonly TimeSpan _stackTraceThrottle;
+    private readonly TimeProvider _timeProvider;
     private readonly ConcurrentDictionary<int, StationStats> _stations = new();
     private readonly ConcurrentDictionary<(int StationId, string ExceptionType), DateTime> _lastStackLog = new();
+
+    public StationErrorTracker() : this(TimeSpan.FromHours(1), TimeProvider.System) { }
+
+    public StationErrorTracker(TimeSpan stackTraceThrottle, TimeProvider timeProvider)
+    {
+        _stackTraceThrottle = stackTraceThrottle;
+        _timeProvider = timeProvider;
+    }
 
     public bool RecordError(int stationId, Exception exception)
     {
         var exType = exception.GetType().Name;
 
         var stats = _stations.GetOrAdd(stationId, _ => new StationStats());
-        stats.RecordError(exType);
+        stats.RecordError(exType, _timeProvider.GetUtcNow().UtcDateTime);
 
         var key = (stationId, exType);
-        var now = DateTime.UtcNow;
+        var now = _timeProvider.GetUtcNow().UtcDateTime;
         var shouldLogStack = false;
 
         _lastStackLog.AddOrUpdate(key,
@@ -28,7 +36,7 @@ public class StationErrorTracker : IStationErrorTracker
             },
             (_, last) =>
             {
-                if (now - last >= StackTraceThrottle)
+                if (now - last >= _stackTraceThrottle)
                 {
                     shouldLogStack = true;
                     return now;
@@ -47,13 +55,13 @@ public class StationErrorTracker : IStationErrorTracker
 
     public IReadOnlyCollection<StationErrorReport> GetReport(int? topN = null)
     {
-        var query = _stations
+        IEnumerable<StationErrorReport> query = _stations
             .Where(kv => kv.Value.ErrorCount > 0)
             .Select(kv => kv.Value.ToReport(kv.Key))
             .OrderByDescending(r => r.ErrorCount)
             .ThenByDescending(r => r.ErrorRate);
 
-        if (topN.HasValue) query = (IOrderedEnumerable<StationErrorReport>)query.Take(topN.Value);
+        if (topN.HasValue) query = query.Take(topN.Value);
 
         return query.ToArray();
     }
@@ -67,12 +75,12 @@ public class StationErrorTracker : IStationErrorTracker
         public DateTime FirstError { get; private set; }
         public DateTime LastError { get; private set; }
 
-        public void RecordError(string exceptionType)
+        public void RecordError(string exceptionType, DateTime now)
         {
             lock (_gate)
             {
                 ErrorCount++;
-                LastError = DateTime.UtcNow;
+                LastError = now;
                 if (FirstError == default) FirstError = LastError;
                 _errorsByType[exceptionType] = _errorsByType.GetValueOrDefault(exceptionType) + 1;
             }

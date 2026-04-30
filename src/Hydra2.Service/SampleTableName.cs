@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 
 namespace Hydra2.Service;
 
-internal static partial class SampleTableName
+public static partial class SampleTableName
 {
     [GeneratedRegex(@"^Sample-\d{3}$", RegexOptions.CultureInvariant)]
     private static partial Regex Pattern();

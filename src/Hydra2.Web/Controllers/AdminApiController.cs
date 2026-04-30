@@ -28,18 +28,18 @@ public class AdminApiController : ControllerBase
     }
 
     [HttpGet("logs/level")]
-    public IActionResult GetLogLevel(string token)
+    public IActionResult GetLogLevel(string? token)
     {
         if (!IsAuthorized(token)) return Unauthorized();
         return Ok(new { current = _levelSwitch.MinimumLevel.ToString() });
     }
 
     [HttpPost("logs/level")]
-    public IActionResult SetLogLevel(string token, string level)
+    public IActionResult SetLogLevel(string? token, string? level)
     {
         if (!IsAuthorized(token)) return Unauthorized();
 
-        if (!Enum.TryParse<LogEventLevel>(level, ignoreCase: true, out var parsed))
+        if (string.IsNullOrEmpty(level) || !Enum.TryParse<LogEventLevel>(level, ignoreCase: true, out var parsed))
         {
             return BadRequest(new
             {
@@ -56,7 +56,7 @@ public class AdminApiController : ControllerBase
     }
 
     [HttpGet("failing-stations")]
-    public IActionResult GetFailingStations(string token, int? topN = null, double? minErrorRate = null)
+    public IActionResult GetFailingStations(string? token, int? topN = null, double? minErrorRate = null)
     {
         if (!IsAuthorized(token)) return Unauthorized();
 

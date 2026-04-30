@@ -30,7 +30,7 @@ public class JobsController : ControllerBase
     /// Manually triggers a single source run (in-process). Returns when the run completes.
     /// </summary>
     [HttpPost("trigger/{name}")]
-    public async Task<IActionResult> Trigger(string name, string token, CancellationToken cancellationToken)
+    public async Task<IActionResult> Trigger(string name, string? token, CancellationToken cancellationToken)
     {
         if (!IsAuthorized(token)) return Unauthorized();
 
@@ -48,7 +48,7 @@ public class JobsController : ControllerBase
     /// Useful when you want fire-and-forget without waiting for the run.
     /// </summary>
     [HttpPost("schedule/{name}")]
-    public async Task<IActionResult> ScheduleNow(string name, string token, CancellationToken cancellationToken)
+    public async Task<IActionResult> ScheduleNow(string name, string? token, CancellationToken cancellationToken)
     {
         if (!IsAuthorized(token)) return Unauthorized();
 
@@ -67,7 +67,7 @@ public class JobsController : ControllerBase
     }
 
     [HttpGet("status")]
-    public async Task<IActionResult> Status(string token, CancellationToken cancellationToken)
+    public async Task<IActionResult> Status(string? token, CancellationToken cancellationToken)
     {
         if (!IsAuthorized(token)) return Unauthorized();
 

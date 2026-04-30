@@ -86,6 +86,8 @@ public abstract class BaseDownloader : ISpotInformationDownloader
         _numberFormat = new NumberFormatInfo { NumberDecimalSeparator = DecimalSeparator };
     }
 
+    private static readonly CultureInfo CzechCulture = CultureInfo.GetCultureInfo("cs-CZ");
+
     protected virtual void LoadData(IList<SpotRecord> result)
     {
         if (Table is null) return;
@@ -93,9 +95,12 @@ public abstract class BaseDownloader : ISpotInformationDownloader
         foreach (var row in Table.Descendants("tr").Skip(1))
         {
             var tds = row.Descendants("td").Select(td => WebUtility.HtmlDecode(td.InnerText).Trim()).ToArray();
-            if (string.IsNullOrWhiteSpace(tds[0])) continue;
-            if (!DateTime.TryParse(tds[0], out var dt)) continue;
+            if (tds.Length == 0 || string.IsNullOrWhiteSpace(tds[0])) continue;
+            if (!DateTime.TryParse(tds[0], CzechCulture, DateTimeStyles.None, out var dt) &&
+                !DateTime.TryParse(tds[0], CultureInfo.InvariantCulture, DateTimeStyles.None, out dt))
+                continue;
             if (dt.Minute != 0) continue;
+            if (tds.Length < 3) continue;
 
             var record = new SpotRecord
             {
