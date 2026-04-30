@@ -10,8 +10,7 @@
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="cs_CZ" />
     <title>Hydra2 @ViewBag.Title</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/site.bundle.css" asp-append-version="true" />
 </head>
 <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
@@ -42,10 +41,7 @@
         </footer>
     </div>
 
-    <script src="~/lib/jquery/jquery.min.js"></script>
-    <script src="~/lib/bootbox/bootbox.min.js"></script>
-    <script src="~/js/Hydra2.js"></script>
-    <script src="~/lib/bootstrap/js/bootstrap.min.js"></script>
+    <script src="~/js/site.bundle.js" asp-append-version="true"></script>
     @await RenderSectionAsync("scripts", required: false)
 </body>
 </html>

@@ -46,6 +46,19 @@ builder.Services.AddSingleton<IUpdateProgressListener, TrackerProgressListener>(
 
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddWebOptimizer(pipeline =>
+{
+    pipeline.AddCssBundle("/css/site.bundle.css",
+        "/lib/bootstrap/css/bootstrap.min.css",
+        "/css/site.css");
+
+    pipeline.AddJavaScriptBundle("/js/site.bundle.js",
+        "/lib/jquery/jquery.min.js",
+        "/lib/bootbox/bootbox.min.js",
+        "/lib/bootstrap/js/bootstrap.min.js",
+        "/js/Hydra2.js");
+});
+
 var schedulerOptions = builder.Configuration
     .GetSection(SchedulerOptions.SectionName)
     .Get<SchedulerOptions>() ?? new SchedulerOptions();
@@ -100,6 +113,12 @@ app.UseSerilogRequestLogging();
 app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseHttpsRedirection();
 app.UseMiddleware<BasicAuthMiddleware>();
+
+// WebOptimizer must run BEFORE UseStaticFiles so /css/site.bundle.css and
+// /js/site.bundle.js are served by the optimizer (with content-hash cache key
+// in the URL when ITagHelper produces it). Source files at /lib/, /css/site.css
+// etc. continue to be served by UseStaticFiles below.
+app.UseWebOptimizer();
 
 app.UseStaticFiles(new StaticFileOptions
 {
