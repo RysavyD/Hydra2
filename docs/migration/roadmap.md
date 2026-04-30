@@ -16,7 +16,7 @@
 | 4 | Testy (xUnit, snapshot scraperů, integration) | ✅ | [phase-4-tests.md](phase-4-tests.md) |
 | 5 | HTTP hardening + bezpečnost | ✅ | [phase-5-hardening.md](phase-5-hardening.md) |
 | 6 | Mobile + UX fixes | ✅ | [phase-6-mobile-ux.md](phase-6-mobile-ux.md) |
-| 7 | amCharts 4 → 5 (nebo ECharts) | 📋 🔴 | |
+| 7 | amCharts 4 → 5 | ✅ | [phase-7-amcharts5.md](phase-7-amcharts5.md) |
 | 8 | jQuery 3.7 + bundling | 📋 | |
 | 9 | TypeScript pro Graf + DevOps | 📋 | |
 | 10 | Volitelná vylepšení (PWA, dark mode, BS5) | 💤 | |

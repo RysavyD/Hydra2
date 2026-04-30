@@ -3,15 +3,14 @@ namespace Hydra2.Web.Middleware;
 /// <summary>
 /// Sets defense-in-depth security headers on every response.
 /// CSP is intentionally permissive on inline scripts because Razor views
-/// (Graf/Index.cshtml) still embed JS directly. After Phase 8/9 (amCharts
-/// replacement + TypeScript extraction) this should tighten with nonces
-/// or hashes and drop 'unsafe-inline'.
+/// (Graf/Index.cshtml) still embed JS directly. After Phase 9 (TypeScript
+/// extraction) this should tighten with nonces or hashes and drop 'unsafe-inline'.
 /// </summary>
 public class SecurityHeadersMiddleware
 {
     private const string ContentSecurityPolicy =
         "default-src 'self'; " +
-        "script-src 'self' 'unsafe-inline' https://www.amcharts.com https://cdn.amcharts.com; " +
+        "script-src 'self' 'unsafe-inline' https://cdn.amcharts.com; " +
         "style-src 'self' 'unsafe-inline'; " +
         "img-src 'self' data: https:; " +
         "font-src 'self'; " +

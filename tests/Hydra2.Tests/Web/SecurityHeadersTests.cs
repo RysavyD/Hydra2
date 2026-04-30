@@ -28,7 +28,7 @@ public class SecurityHeadersTests : IClassFixture<TestWebApplicationFactory>
 
         var csp = response.Headers.GetValues("Content-Security-Policy").Single();
         csp.Should().Contain("default-src 'self'");
-        csp.Should().Contain("https://www.amcharts.com");
+        csp.Should().Contain("https://cdn.amcharts.com");
         csp.Should().Contain("frame-ancestors 'none'");
     }
 

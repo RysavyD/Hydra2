@@ -153,10 +153,10 @@
 </div>
 
 @section scripts {
-    <script src="https://www.amcharts.com/lib/4/core.js" crossorigin="anonymous"></script>
-    <script src="https://www.amcharts.com/lib/4/charts.js" crossorigin="anonymous"></script>
-    <script src="https://www.amcharts.com/lib/4/themes/animated.js" crossorigin="anonymous"></script>
-    <script src="https://www.amcharts.com/lib/4/lang/cs_CZ.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.amcharts.com/lib/5/index.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.amcharts.com/lib/5/xy.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.amcharts.com/lib/5/locales/cs_CZ.js" crossorigin="anonymous"></script>
 
     <script src="~/lib/daterangepicker/moment.min.js"></script>
     <script src="~/lib/daterangepicker/daterangepicker.js"></script>
@@ -166,32 +166,74 @@
     </style>
 
     <script>
-        var chart;
+        // amCharts 5 root + chart - lifecycle objects.
+        var root, chart, xAxis;
+
+        function disposeChart() {
+            if (root) {
+                root.dispose();
+                root = null;
+                chart = null;
+                xAxis = null;
+            }
+        }
 
         function CreateGraph(data) {
-            am4core.useTheme(am4themes_animated);
-            chart = am4core.create("chartdiv", am4charts.XYChart);
-            chart.colors.step = 2;
-            chart.data = generateChartData(data);
+            // amCharts 5 requires explicit root per chart and full disposal on rebuild.
+            disposeChart();
 
-            chart.language.locale = am4lang_cs_CZ;
+            root = am5.Root.new("chartdiv");
+            root.setThemes([am5themes_Animated.new(root)]);
+            if (typeof am5locales_cs_CZ !== "undefined") {
+                root.locale = am5locales_cs_CZ;
+            }
 
-            var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
-            dateAxis.tooltipDateFormat = "yyyy-MM-dd HH:mm";
+            chart = root.container.children.push(
+                am5xy.XYChart.new(root, {
+                    layout: root.verticalLayout,
+                    panX: true,
+                    panY: false,
+                    wheelX: "panX",
+                    wheelY: "zoomX",
+                    pinchZoomX: true
+                })
+            );
 
-            createAxisAndSeries("h", "Hladina", false, "circle", "#009933");
-            createAxisAndSeries("Q", "Průtok", true, "triangle", "#0000cc");
-            createAxisAndSeries("t", "Teplota", true, "rectangle", "#cc0000");
+            xAxis = chart.xAxes.push(
+                am5xy.DateAxis.new(root, {
+                    baseInterval: { timeUnit: "minute", count: 1 },
+                    renderer: am5xy.AxisRendererX.new(root, { minGridDistance: 60 }),
+                    tooltip: am5.Tooltip.new(root, {})
+                })
+            );
+            xAxis.get("dateFormats")["day"] = "yyyy-MM-dd";
+            xAxis.get("periodChangeDateFormats")["day"] = "yyyy-MM-dd";
 
-            chart.legend = new am4charts.Legend();
-            chart.cursor = new am4charts.XYCursor();
+            var chartData = generateChartData(data);
+
+            createAxisAndSeries("h", "Hladina", false, "#009933", chartData);
+            createAxisAndSeries("Q", "Průtok", true, "#0000cc", chartData);
+            createAxisAndSeries("t", "Teplota", true, "#cc0000", chartData);
+
+            chart.set("cursor", am5xy.XYCursor.new(root, {
+                xAxis: xAxis,
+                behavior: "zoomX"
+            }));
+
+            var legend = chart.children.push(am5.Legend.new(root, {
+                centerX: am5.percent(50),
+                x: am5.percent(50)
+            }));
+            legend.data.setAll(chart.series.values);
+
+            chart.appear(800, 100);
         }
 
         function generateChartData(data) {
             var chartData = [];
             $.each(data, function (i, item) {
                 chartData.push({
-                    date: new Date(item.Date),
+                    date: new Date(item.Date).getTime(),
                     h: item.h,
                     Q: item.Q,
                     t: item.t
@@ -200,24 +242,38 @@
             return chartData;
         }
 
-        function createAxisAndSeries(field, name, opposite, bullet, color) {
-            var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-            var series = chart.series.push(new am4charts.LineSeries());
-            series.dataFields.valueY = field;
-            series.dataFields.dateX = "date";
-            series.strokeWidth = 1;
-            series.stroke = am4core.color(color);
-            series.yAxis = valueAxis;
-            series.name = name;
-            series.tooltipText = "{name}: [bold]{valueY}[/]";
-            series.tensionX = 0.8;
+        function createAxisAndSeries(field, name, opposite, color, chartData) {
+            var yRenderer = am5xy.AxisRendererY.new(root, {
+                opposite: opposite,
+                stroke: am5.color(color),
+                strokeOpacity: 1,
+                strokeWidth: 2
+            });
+            yRenderer.grid.template.set("forceHidden", true);
+            yRenderer.labels.template.set("fill", am5.color(color));
 
-            valueAxis.renderer.line.strokeOpacity = 1;
-            valueAxis.renderer.line.strokeWidth = 2;
-            valueAxis.renderer.line.stroke = am4core.color(color);
-            valueAxis.renderer.labels.template.fill = series.stroke;
-            valueAxis.renderer.opposite = opposite;
-            valueAxis.renderer.grid.template.disabled = true;
+            var yAxis = chart.yAxes.push(
+                am5xy.ValueAxis.new(root, { renderer: yRenderer })
+            );
+
+            var series = chart.series.push(
+                am5xy.SmoothedXLineSeries.new(root, {
+                    name: name,
+                    xAxis: xAxis,
+                    yAxis: yAxis,
+                    valueXField: "date",
+                    valueYField: field,
+                    stroke: am5.color(color),
+                    fill: am5.color(color),
+                    tension: 0.8,
+                    tooltip: am5.Tooltip.new(root, {
+                        labelText: "{name}: [bold]{valueY}[/]"
+                    })
+                })
+            );
+            series.strokes.template.set("strokeWidth", 1);
+            series.data.setAll(chartData);
+            series.appear(500);
         }
 
         function showChartLoading() { $("#chartLoading").removeClass("is-hidden"); }
