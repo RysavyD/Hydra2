@@ -53,6 +53,12 @@ textarea {
     position: relative;
 }
 
+/* amCharts root fills the container (was inline style in Graf/Index.cshtml) */
+#chartdiv {
+    width: 100%;
+    height: 100%;
+}
+
 /* Skeleton placeholder shown while AJAX is in flight */
 .chart-skeleton {
     position: absolute;

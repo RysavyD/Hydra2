@@ -1,0 +1,33 @@
+# EditorConfig — https://editorconfig.org/
+root = true
+
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{json,yml,yaml,js,ts,mjs,cjs,html,cshtml,css}]
+indent_size = 2
+
+[*.{cs,csproj,sln,props,targets}]
+indent_size = 4
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.{ps1,sh}]
+end_of_line = lf
+
+# C# specific
+[*.cs]
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_indent_case_contents = true
+csharp_indent_switch_labels = true
+csharp_space_after_keywords_in_control_flow_statements = true
+dotnet_sort_system_directives_first = true

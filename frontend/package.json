@@ -1,0 +1,17 @@
+{
+  "name": "hydra2-frontend",
+  "version": "1.0.0",
+  "description": "TypeScript sources for Hydra2 web — Graf page and other client-side scripts.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/jquery": "^3.5.30",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.6.3"
+  }
+}

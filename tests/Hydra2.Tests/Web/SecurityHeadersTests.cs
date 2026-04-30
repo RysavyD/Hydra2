@@ -33,6 +33,18 @@ public class SecurityHeadersTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
+    public async Task Csp_script_src_does_not_allow_unsafe_inline()
+    {
+        var client = _factory.CreateClient();
+        var response = await client.GetAsync("/");
+
+        var csp = response.Headers.GetValues("Content-Security-Policy").Single();
+        // Extract script-src directive only - style-src legitimately retains 'unsafe-inline'.
+        var scriptSrc = csp.Split(';').Single(d => d.TrimStart().StartsWith("script-src"));
+        scriptSrc.Should().NotContain("'unsafe-inline'");
+    }
+
+    [Fact]
     public async Task Static_files_under_lib_have_immutable_cache()
     {
         var client = _factory.CreateClient();

@@ -18,7 +18,7 @@
 | 6 | Mobile + UX fixes | ✅ | [phase-6-mobile-ux.md](phase-6-mobile-ux.md) |
 | 7 | amCharts 4 → 5 | ✅ | [phase-7-amcharts5.md](phase-7-amcharts5.md) |
 | 8 | jQuery 3.7 + bundling | ✅ | [phase-8-jquery-bundling.md](phase-8-jquery-bundling.md) |
-| 9 | TypeScript pro Graf + DevOps | 📋 | |
+| 9 | TypeScript pro Graf + DevOps | ✅ | [phase-9-typescript.md](phase-9-typescript.md) |
 | 10 | Volitelná vylepšení (PWA, dark mode, BS5) | 💤 | |
 | 11 | Cleanup — smazání starých projektů | 💤 | Po cutoveru staging → prod |
 

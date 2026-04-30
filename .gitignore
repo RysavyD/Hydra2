@@ -237,3 +237,7 @@ _Pvt_Extensions
 
 # Claude Code session data
 .claude/
+
+# Frontend build artifacts (Phase 9 — TypeScript)
+frontend/node_modules/
+frontend/*.tsbuildinfo
