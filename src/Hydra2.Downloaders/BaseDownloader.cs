@@ -29,7 +29,7 @@ public abstract class BaseDownloader : ISpotInformationDownloader
 
     public virtual async Task<IList<SpotRecord>> GetRecordsAsync(string link, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Stahuji ze stránky: {Link}", link);
+        _logger.LogDebug("Downloading from {Link}", link);
 
         Link = link;
         var result = new List<SpotRecord>();
@@ -41,7 +41,7 @@ public abstract class BaseDownloader : ISpotInformationDownloader
         SetDecimalSeparator();
         LoadData(result);
 
-        _logger.LogInformation("Vzorků nalezeno: {Count}", result.Count);
+        _logger.LogDebug("Parsed {Count} samples from {Link}", result.Count, link);
         return result;
     }
 

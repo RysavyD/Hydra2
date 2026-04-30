@@ -1,4 +1,5 @@
 using System.Reflection;
+using Hydra2.Downloaders;
 using Hydra2.Service;
 using Hydra2.Web.Scheduler;
 using Microsoft.AspNetCore.Mvc;
@@ -14,15 +15,18 @@ public class HeartbeatController : ControllerBase
 
     private readonly SchedulerStateTracker _stateTracker;
     private readonly IConfigService _configService;
+    private readonly ICycleStats _cycleStats;
     private readonly ILogger<HeartbeatController> _logger;
 
     public HeartbeatController(
         SchedulerStateTracker stateTracker,
         IConfigService configService,
+        ICycleStats cycleStats,
         ILogger<HeartbeatController> logger)
     {
         _stateTracker = stateTracker;
         _configService = configService;
+        _cycleStats = cycleStats;
         _logger = logger;
     }
 
@@ -42,8 +46,11 @@ public class HeartbeatController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Heartbeat: nelze načíst config");
+            _logger.LogWarning(ex, "Heartbeat: failed to read config");
         }
+
+        var lastCycle = _cycleStats.GetLastCompleted();
+        var current = _cycleStats.GetCurrent();
 
         var status = ResolveStatus(loopStarted, lastIteration, currentStationId.HasValue);
 
@@ -58,6 +65,29 @@ public class HeartbeatController : ControllerBase
                 loopStarted,
                 lastIteration,
                 currentStationId,
+            },
+            cycle = new
+            {
+                inProgress = new
+                {
+                    startedAt = current.StartedAt,
+                    attempts = current.Attempts,
+                    ok = current.Ok,
+                    skipped = current.Skipped,
+                    errors = current.Errors,
+                    samplesAdded = current.SamplesAdded,
+                },
+                lastCompleted = lastCycle is null ? null : new
+                {
+                    startedAt = lastCycle.StartedAt,
+                    completedAt = lastCycle.CompletedAt,
+                    duration = lastCycle.Duration.ToString(@"hh\:mm\:ss"),
+                    attempts = lastCycle.Attempts,
+                    ok = lastCycle.Ok,
+                    skipped = lastCycle.Skipped,
+                    errors = lastCycle.Errors,
+                    samplesAdded = lastCycle.SamplesAdded,
+                },
             },
             status,
         });

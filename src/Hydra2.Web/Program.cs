@@ -5,11 +5,21 @@ using Hydra2.Web;
 using Hydra2.Web.Scheduler;
 using Quartz;
 using Serilog;
+using Serilog.Core;
+using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var configuredLevelText = builder.Configuration["Serilog:MinimumLevel:Default"] ?? "Information";
+var initialLevel = Enum.TryParse<LogEventLevel>(configuredLevelText, ignoreCase: true, out var lv)
+    ? lv
+    : LogEventLevel.Information;
+var loggingLevelSwitch = new LoggingLevelSwitch(initialLevel);
+builder.Services.AddSingleton(loggingLevelSwitch);
+
 builder.Host.UseSerilog((context, services, configuration) => configuration
     .ReadFrom.Configuration(context.Configuration)
+    .MinimumLevel.ControlledBy(loggingLevelSwitch)
     .ReadFrom.Services(services)
     .Enrich.FromLogContext());
 

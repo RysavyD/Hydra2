@@ -15,6 +15,8 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<PmoToky>(ConfigureClient);
 
         services.AddSingleton<IDownloaderFactory, DownloaderFactory>();
+        services.AddSingleton<ICycleStats, CycleStats>();
+        services.AddSingleton<IStationErrorTracker, StationErrorTracker>();
         services.TryAddSingleton<IUpdateProgressListener, NullUpdateProgressListener>();
         services.AddScoped<IUpdateService, UpdateService>();
 
