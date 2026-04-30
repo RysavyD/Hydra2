@@ -19,8 +19,9 @@
 | 7 | amCharts 4 → 5 | ✅ | [phase-7-amcharts5.md](phase-7-amcharts5.md) |
 | 8 | jQuery 3.7 + bundling | ✅ | [phase-8-jquery-bundling.md](phase-8-jquery-bundling.md) |
 | 9 | TypeScript pro Graf + DevOps | ✅ | [phase-9-typescript.md](phase-9-typescript.md) |
-| 10 | PWA + dark mode (volitelná modernizace) | ✅ | [phase-10-pwa-darkmode.md](phase-10-pwa-darkmode.md) |
-| 11 | Cleanup — smazání starých projektů | 💤 | Po cutoveru staging → prod |
+| 10 | PWA + dark mode | ✅ | [phase-10-pwa-darkmode.md](phase-10-pwa-darkmode.md) |
+| 11 | Bootstrap 5 + drop jQuery | 📋 | Plánováno — viz níže |
+| 12 | Cleanup — smazání starých projektů | 💤 | Po cutoveru staging → prod |
 
 ---
 
@@ -243,7 +244,131 @@ Tyto věci nejsou kritické, ale dělají Hydru moderní:
 
 ---
 
-## Fáze 11 — Cleanup po cutoveru 💤
+## Fáze 11 — Bootstrap 5 + drop jQuery 📋
+
+**Cíl:** Modernizovat frontend stack — odstranit jQuery dependency, přejít na Bootstrap 5 s native dark mode a vanilla-JS API. Přínos: menší bundle, žádné jQuery security vulnerabilities, modernější developer experience.
+
+**Co:**
+
+### A) Bootstrap 3.4.1 → Bootstrap 5.3.x
+- `bootstrap.min.css` + `bootstrap.bundle.min.js` (含 Popper) — self-hosted v `wwwroot/lib/bootstrap/`
+- Custom Sass build pro zachování brandových barev (`#1a3d6e`) — nebo použít CSS custom properties overrides
+- Renamed utility classes:
+  - `.pull-right` → `.float-end`, `.pull-left` → `.float-start`
+  - `.text-right` → `.text-end`, `.text-left` → `.text-start`
+  - `.hidden-xs` → `.d-none .d-sm-block` (responsive utility renaming)
+- Renamed component data attrs:
+  - `data-toggle` → `data-bs-toggle`
+  - `data-target` → `data-bs-target`
+  - `data-dismiss` → `data-bs-dismiss`
+- Removed components → custom CSS shim:
+  - **`.jumbotron`** → `<div class="bg-light p-5 rounded">` v Home/Index, About, Contact
+  - **`.panel-default`/`.panel-body`** → `.card` (pokud někde použité)
+  - **`.btn-default`** → `.btn-secondary`
+- Navbar:
+  - `.navbar-inverse` → `.navbar-dark .bg-dark`
+  - `.navbar-toggle` → `.navbar-toggler`
+  - `.collapse.navbar-collapse` zachovat, ale přepsat data-bs-* atributy
+
+### B) Glyphicons → Bootstrap Icons
+- BS5 odebral glyphicons. Místa použití (Graf/Index.cshtml):
+  - `<i class="glyphicon glyphicon-calendar">` (kalendářová ikona u datepickeru) → `<i class="bi bi-calendar-event">`
+- Self-hosted `bootstrap-icons.css` + `fonts/bootstrap-icons.woff2` v `wwwroot/lib/bootstrap-icons/`
+
+### C) Drop jQuery (1.10.2 → 3.7.1 → ZERO)
+**Předpoklad**: nahradit všechny jQuery callsity v kódu.
+
+#### graf.ts (~300 jQuery-ových volání)
+- `$(...).val()` → `(elem as HTMLInputElement).value`
+- `$(...).text(x)` → `elem.textContent = x`
+- `$(...).attr("href", x)` → `elem.setAttribute("href", x)` nebo `(elem as HTMLAnchorElement).href = x`
+- `$(...).on("click", fn)` → `elem.addEventListener("click", fn)`
+- `$(...).hide()/.show()` → `elem.style.display = "none"/"block"` nebo CSS class
+- `$(...).empty()` → `elem.replaceChildren()` nebo `elem.innerHTML = ""`
+- `$(...).append(html)` → `elem.insertAdjacentHTML("beforeend", html)`
+- `$.each(arr, fn)` → `arr.forEach(fn)` nebo `for (const item of arr)`
+- `$.isNumeric(x)` → `!isNaN(Number(x))` nebo `Number.isFinite(parseFloat(x))`
+- `$.ajax({...})` → `fetch(url, {...})` s `await response.json()`
+  - GET `?spot=1&start=...` → `new URLSearchParams({...}).toString()`
+- `$(document).ready(fn)` → `document.addEventListener("DOMContentLoaded", fn)`
+
+#### Hydra2.js
+- Theme toggle už je vanilla JS (žádný jQuery use)
+- ShowWaitDialog/HideWaitDialog používají bootbox → nahradit (viz E)
+
+### D) Daterangepicker → Flatpickr (vanilla, no jQuery)
+**Současný daterangepicker** je jQuery plugin. Nahrazení:
+
+- **[Flatpickr](https://flatpickr.js.org/)** — vanilla JS, ~17 KB gzipped, czech locale (`cs.js`), single-date mode
+- Self-hosted v `wwwroot/lib/flatpickr/`
+- API:
+  ```typescript
+  flatpickr("#start", {
+      dateFormat: "d/m/Y",
+      locale: "cs",
+      altInput: true,
+      altFormat: "d. F Y"
+  });
+  ```
+- Po změně data: `onChange: (selectedDates, dateStr) => { state.start = dateStr; writeUrlState(); }`
+
+### E) Bootbox → custom dialog helper / native `<dialog>`
+**Bootbox** je jQuery plugin pro modal alerty. Použito jen `ShowWaitDialog`/`HideWaitDialog` v `Hydra2.js` (ale Graf už používá `chart-skeleton` overlay od Fáze 6, takže prakticky nepoužito).
+
+→ **Odstranit bootbox úplně**. ShowWaitDialog/HideWaitDialog převést na no-op nebo smazat references.
+
+Pokud bude potřeba dialog v budoucnu, použít HTML5 `<dialog>` element (nativní, podporovaný všude od 2022).
+
+### F) CSS úpravy
+- **`style-src 'unsafe-inline'`** lze nakonec dropnout v CSP — Bootstrap 5 nepoužívá inline style atributy v komponentách. Audit zbylých `style="..."` v Razor views (~12 míst).
+- BS5 má **native dark mode** (`data-bs-theme="dark"`) — **nahradí** mé custom CSS variables ve Fázi 10. Přepsat `theme-init.js` aby nastavoval `data-bs-theme` místo `data-theme`. Toggle v Hydra2.js stejně.
+- Drop CSS custom properties (`--bg`, `--text`, …), použít BS5 utility classes a tokens
+
+### G) WebOptimizer bundle — drop jQuery
+```diff
+  pipeline.AddJavaScriptBundle("/js/site.bundle.js",
+-     "/lib/jquery/jquery.min.js",
+-     "/lib/bootbox/bootbox.min.js",
+      "/lib/bootstrap/js/bootstrap.bundle.min.js",
+      "/js/Hydra2.js");
+```
+
+→ Bundle se zmenší ze ~144 KB na ~80 KB. jQuery 87 KB ušetřeno.
+
+### H) Tests
+- `WebOptimizerBundleTests`: aktualizovat — bundle už neobsahuje "jQuery" / "v3.7" markers, ale OBSAHUJE `bootstrap.Modal` nebo "Popper"
+- `Csp_script_src_does_not_allow_unsafe_inline` zůstává platný
+- **NOVÝ** test `Csp_style_src_does_not_allow_unsafe_inline` (lze přidat až po auditu inline `style=""`)
+- Visual regression manuální check page-by-page (Home, Adm/Index, Adm/SpotOverView, Graf, About, Contact, HandUpdate, GetStationOverView)
+
+**Risk:** **medium-high** — největší frontend změna v celé migraci. Bez visual regression testů je snadné přehlédnout drobnosti (padding, font-size, focus styles). Doporučený postup:
+- **Page-by-page** přístup: nejdřív Home (jednoduché), pak Adm (admin, snese drobnosti), nakonec Graf (kritická feature)
+- Side-by-side comparison na staging před produkcí
+- 2 týdny "burn-in" period na stagingu
+- Připravit jasný rollback plán (`git revert` nebo branch switch)
+
+**Effort:** 4-6 dní + 2 dny smoke testing
+- BS3 → BS5 CSS/JS: 1-2 dny
+- Glyphicons → Bootstrap Icons: 0.5 den
+- jQuery removal v graf.ts: 1-1.5 den
+- Daterangepicker → Flatpickr: 1 den
+- Bootbox removal: 0.5 den
+- BS5 native dark mode adoption: 0.5 den
+- CSS audit + cleanup `style="..."` atributů: 0.5 den
+- Visual regression manual: 1-2 dny
+
+**Závislost:** Fáze 7 (amCharts 5) hotová — chart už nepoužívá jQuery. Fáze 9 (TypeScript) hotová — graf.ts je dobře strukturovaný pro vanilla JS rewrite.
+
+**Bonusy po dokončení:**
+- jQuery 87 KB out of bundle → **rychlejší first paint na mobilu**
+- Native dark mode přes `data-bs-theme` — kratší CSS, méně vlastní logiky
+- BS5 forms mají lepší accessibility defaults (focus states, labels)
+- Možné přidat `column-gap`, `row-gap` v gridu (BS5 utility)
+- Připraveno na případné CSS Modules / Tailwind refactor v budoucnu
+
+---
+
+## Fáze 12 — Cleanup po cutoveru 💤
 
 **Cíl:** smazat starou .NET Framework verzi po úspěšném cutoveru staging → prod.
 
@@ -262,19 +387,11 @@ Tyto věci nejsou kritické, ale dělají Hydru moderní:
 ## TL;DR — kde teď jsme
 
 ```
-✅ Fáze 0 + 1     hotovo (commit pushed)
-✅ Fáze 2        Logování (tuning Serilog)
-✅ Fáze 3        Quartz refactor + smart heartbeat
-✅ Fáze 4        Testy (xUnit, snapshot scrapery, CI)
-✅ Fáze 5        HTTP hardening
-✅ Fáze 6        Mobile + UX fixes
-🔴 Fáze 7        amCharts 4 → 5/ECharts (kritická knihovna EOL)
-📋 Fáze 8        jQuery + bundling
-📋 Fáze 9        TypeScript + CI/CD
-💤 Fáze 10       volitelná modernizace (PWA, dark mode, BS5)
-💤 Fáze 11       cleanup starých projektů
+✅ Fáze 0 – 10   hotovo a pushnuto (14 commitů, 82/82 testů)
+📋 Fáze 11       Bootstrap 5 + drop jQuery (vanilla JS rewrite)
+💤 Fáze 12       cleanup starých .NET Framework projektů
 ```
 
-**Doporučené pořadí**: **7 → 8 → 9** (chart EOL fix → jQuery → TS modernizace).
-**Možno paralelně**: Fáze 4 (testy) byla hotová jako safety net pro vše ostatní.
-**Zranitelnost**: amCharts 4 (Fáze 7) je jediná kritická součást, jinak žádné security vulns aktivně otevřené.
+**Doporučené pořadí**: po stabilním běhu Fáze 0–10 v produkci (~2 týdny) → **Fáze 11** → po dalších 2 týdnech bez regresí → **Fáze 12** (cleanup).
+
+**Zranitelnost**: žádné aktivní security vulns. jQuery 3.7.1 je čistý, ale stále +87 KB v bundle, který by Fáze 11 odstranila.
