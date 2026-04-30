@@ -2,7 +2,11 @@ using System.Globalization;
 using Hydra2.Downloaders;
 using Hydra2.Service;
 using Hydra2.Web;
+using Hydra2.Web.Middleware;
 using Hydra2.Web.Scheduler;
+using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.FileProviders;
 using Quartz;
 using Serilog;
 using Serilog.Core;
@@ -24,7 +28,15 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
     .Enrich.FromLogContext());
 
 builder.Services.Configure<AuthOptions>(builder.Configuration.GetSection(AuthOptions.SectionName));
+builder.Services.Configure<AdminAuthOptions>(builder.Configuration.GetSection(AdminAuthOptions.SectionName));
 builder.Services.Configure<SchedulerOptions>(builder.Configuration.GetSection(SchedulerOptions.SectionName));
+
+builder.Services.AddHsts(opts =>
+{
+    opts.Preload = true;
+    opts.IncludeSubDomains = true;
+    opts.MaxAge = TimeSpan.FromDays(365);
+});
 
 builder.Services.AddHydra2Services(builder.Configuration);
 builder.Services.AddHydra2Downloaders();
@@ -85,8 +97,29 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseSerilogRequestLogging();
+app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+app.UseMiddleware<BasicAuthMiddleware>();
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        var path = ctx.Context.Request.Path.Value ?? "";
+        // Third-party libraries are content-addressed by version in the path -> long cache.
+        // Owned css/js gets a shorter cache so we can roll fixes without bumping URLs.
+        if (path.StartsWith("/lib/", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("/fonts/", StringComparison.OrdinalIgnoreCase))
+        {
+            ctx.Context.Response.Headers.CacheControl = "public,max-age=31536000,immutable";
+        }
+        else
+        {
+            ctx.Context.Response.Headers.CacheControl = "public,max-age=3600";
+        }
+    },
+});
+
 app.UseRouting();
 app.UseAuthorization();
 

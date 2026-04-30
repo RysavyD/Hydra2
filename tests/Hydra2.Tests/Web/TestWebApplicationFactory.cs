@@ -3,6 +3,7 @@ using Hydra2.Service;
 using Hydra2.Service.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 
@@ -27,9 +28,21 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
             .Returns(new Config { Id = 1, Key = "current", Value = 0 });
     }
 
+    public const string TestAdminUsername = "test-admin";
+    public const string TestAdminPassword = "test-pass";
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Test");
+
+        builder.ConfigureAppConfiguration((_, config) =>
+        {
+            config.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["AdminAuth:Username"] = TestAdminUsername,
+                ["AdminAuth:Password"] = TestAdminPassword,
+            });
+        });
 
         builder.ConfigureServices(services =>
         {

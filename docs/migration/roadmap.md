@@ -14,7 +14,7 @@
 | 2 | Logování (Serilog tuning) | ✅ | [phase-2-logging.md](phase-2-logging.md) |
 | 3 | Quartz refactor + smart heartbeat | ✅ | [phase-3-quartz.md](phase-3-quartz.md) |
 | 4 | Testy (xUnit, snapshot scraperů, integration) | ✅ | [phase-4-tests.md](phase-4-tests.md) |
-| 5 | HTTP hardening + bezpečnost | 📋 | |
+| 5 | HTTP hardening + bezpečnost | ✅ | [phase-5-hardening.md](phase-5-hardening.md) |
 | 6 | Mobile + UX fixes | 📋 | |
 | 7 | jQuery + bundling | 📋 | |
 | 8 | amCharts 4 → 5 (nebo ECharts) | 📋 | |
