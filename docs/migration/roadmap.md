@@ -16,8 +16,8 @@
 | 4 | Testy (xUnit, snapshot scraperů, integration) | ✅ | [phase-4-tests.md](phase-4-tests.md) |
 | 5 | HTTP hardening + bezpečnost | ✅ | [phase-5-hardening.md](phase-5-hardening.md) |
 | 6 | Mobile + UX fixes | ✅ | [phase-6-mobile-ux.md](phase-6-mobile-ux.md) |
-| 7 | jQuery + bundling | 📋 | |
-| 8 | amCharts 4 → 5 (nebo ECharts) | 📋 | |
+| 7 | amCharts 4 → 5 (nebo ECharts) | 📋 🔴 | |
+| 8 | jQuery 3.7 + bundling | 📋 | |
 | 9 | TypeScript pro Graf + DevOps | 📋 | |
 | 10 | Volitelná vylepšení (PWA, dark mode, BS5) | 💤 | |
 | 11 | Cleanup — smazání starých projektů | 💤 | Po cutoveru staging → prod |
@@ -144,34 +144,7 @@
 
 ---
 
-## Fáze 7 — jQuery 3.7 + bundling 📋
-
-**Cíl:** odstranit XSS-vulnerable jQuery 1.10.2 a začít používat bundling/minification.
-
-**Co:**
-- **jQuery 1.10.2 → 3.7.1** — drop-in v 95 % případů
-  - Pozor na `$.browser` (odstraněno v 3.x), `.bind()/.live()` (deprecated)
-  - V Hydra2 je jen `$.ajax`, `.val()`, `.click()`, `.prop()`, `.text()`, `.attr()`, `.on()`, `.each()` — vše funguje
-  - Test: smoke test po deployi staging
-- **jQuery Migrate** přechodně, pokud něco selže
-- **WebOptimizer** integrace:
-  ```csharp
-  builder.Services.AddWebOptimizer(pipeline =>
-  {
-      pipeline.AddCssBundle("/css/site.min.css", "lib/bootstrap/css/*.css", "css/*.css");
-      pipeline.AddJavaScriptBundle("/js/site.min.js", "lib/jquery/*.js", "lib/bootbox/*.js", "js/*.js");
-  });
-  ```
-- Cache-busting přes content hash v URL (WebOptimizer to dělá automaticky)
-- (Volitelně) ESM moduly pro Hydra2.js (`<script type="module">`)
-
-**Risk:** medium — jQuery změna může něco rozbít
-**Effort:** ~1 den + smoke test
-**Závislost:** Fáze 6 (UX) doporučená nejdřív (méně koliduje), Fáze 4 (testy) ideálně před tímto
-
----
-
-## Fáze 8 — amCharts 4 → 5 (nebo migrace na ECharts) 🔴
+## Fáze 7 — amCharts 4 → 5 (nebo migrace na ECharts) 🔴
 
 **Cíl:** opustit EOL chart knihovnu. amCharts 4 už nedostává security ani bug fixy.
 
@@ -200,7 +173,34 @@
 
 **Risk:** medium — ovlivňuje hlavní feature aplikace, nutno otestovat se starými daty
 **Effort:** 1-1.5 dne
-**Závislost:** Fáze 4 (testy) doporučené, ale i bez — visual regression test ručně
+**Závislost:** Fáze 4 (testy) hotové — visual regression test ručně
+
+---
+
+## Fáze 8 — jQuery 3.7 + bundling 📋
+
+**Cíl:** odstranit XSS-vulnerable jQuery 1.10.2 a začít používat bundling/minification.
+
+**Co:**
+- **jQuery 1.10.2 → 3.7.1** — drop-in v 95 % případů
+  - Pozor na `$.browser` (odstraněno v 3.x), `.bind()/.live()` (deprecated)
+  - V Hydra2 je jen `$.ajax`, `.val()`, `.click()`, `.prop()`, `.text()`, `.attr()`, `.on()`, `.each()` — vše funguje
+  - Test: smoke test po deployi staging
+- **jQuery Migrate** přechodně, pokud něco selže
+- **WebOptimizer** integrace:
+  ```csharp
+  builder.Services.AddWebOptimizer(pipeline =>
+  {
+      pipeline.AddCssBundle("/css/site.min.css", "lib/bootstrap/css/*.css", "css/*.css");
+      pipeline.AddJavaScriptBundle("/js/site.min.js", "lib/jquery/*.js", "lib/bootbox/*.js", "js/*.js");
+  });
+  ```
+- Cache-busting přes content hash v URL (WebOptimizer to dělá automaticky)
+- (Volitelně) ESM moduly pro Hydra2.js (`<script type="module">`)
+
+**Risk:** medium — jQuery změna může něco rozbít
+**Effort:** ~1 den + smoke test
+**Závislost:** Fáze 6 (UX) hotová, Fáze 7 (amCharts) ideálně dřív — méně mixování změn naráz
 
 ---
 
@@ -221,7 +221,7 @@
 
 **Risk:** nízké — TS je opt-in, nemusí pokrýt všechen JS
 **Effort:** ~2 dny
-**Závislost:** Fáze 8 (amCharts) ideálně dřív — nevyplatí se psát TS pro kód, který se za týden přepíše
+**Závislost:** Fáze 7 (amCharts) ideálně dřív — nevyplatí se psát TS pro kód, který se za týden přepíše
 
 ---
 
@@ -263,18 +263,18 @@ Tyto věci nejsou kritické, ale dělají Hydru moderní:
 
 ```
 ✅ Fáze 0 + 1     hotovo (commit pushed)
-⏳ Fáze 2        čeká na sample logu (slíbeno)
-📋 Fáze 3        Quartz + smart heartbeat
-📋 Fáze 4        testy
-📋 Fáze 5        HTTP hardening (rychlé wins)
-📋 Fáze 6        mobile + UX fixes
-📋 Fáze 7        jQuery + bundling
-🔴 Fáze 8        amCharts 4 → 5/ECharts (kritická knihovna EOL)
+✅ Fáze 2        Logování (tuning Serilog)
+✅ Fáze 3        Quartz refactor + smart heartbeat
+✅ Fáze 4        Testy (xUnit, snapshot scrapery, CI)
+✅ Fáze 5        HTTP hardening
+✅ Fáze 6        Mobile + UX fixes
+🔴 Fáze 7        amCharts 4 → 5/ECharts (kritická knihovna EOL)
+📋 Fáze 8        jQuery + bundling
 📋 Fáze 9        TypeScript + CI/CD
 💤 Fáze 10       volitelná modernizace (PWA, dark mode, BS5)
 💤 Fáze 11       cleanup starých projektů
 ```
 
-**Doporučené pořadí**: 2 → 3 → 4 → **5 → 6 → 8** (UX + critical chart) → **7 → 9** (modernization).
-**Možno paralelně**: Fáze 4 (testy) lze dělat kdykoliv mimo hlavní linku.
-**Zranitelnost**: amCharts 4 (Fáze 8) je jediná kritická součást, jinak žádné security vulns aktivně otevřené.
+**Doporučené pořadí**: **7 → 8 → 9** (chart EOL fix → jQuery → TS modernizace).
+**Možno paralelně**: Fáze 4 (testy) byla hotová jako safety net pro vše ostatní.
+**Zranitelnost**: amCharts 4 (Fáze 7) je jediná kritická součást, jinak žádné security vulns aktivně otevřené.
