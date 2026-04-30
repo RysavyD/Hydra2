@@ -2,12 +2,48 @@
     ViewBag.Title = "Administrace";
 }
 
-Přítomno vzorků: @ViewBag.samplesCount <br />
-Kultura: @ViewBag.culture <br />
-Datum: @ViewBag.date <br />
+<dl class="dl-horizontal">
+    <dt>Přítomno vzorků</dt>
+    <dd>@ViewBag.samplesCount</dd>
+    <dt>Kultura</dt>
+    <dd>@ViewBag.culture</dd>
+    <dt>Datum buildu</dt>
+    <dd>@ViewBag.date</dd>
+</dl>
 
-<div class="row">
-    <a asp-controller="Adm" asp-action="SpotOverView" asp-route-samples="false" class="btn btn-success">Spot overview</a>
-    <a asp-controller="Adm" asp-action="HandUpdate" class="btn btn-success" style="margin: 10px;">Hand update</a>
-    <a asp-controller="Adm" asp-action="GetStationOverView" asp-route-id="64" class="btn btn-success" style="margin: 10px;">Get Station OverView + id</a>
+<div class="row" style="margin-top: 1em;">
+    <div class="col-md-6">
+        <h4>Přehled</h4>
+        <a asp-controller="Adm" asp-action="SpotOverView" asp-route-samples="false" class="btn btn-success">Spot overview</a>
+        <a asp-controller="Adm" asp-action="SpotOverView" asp-route-samples="true" class="btn btn-default">Spot overview (s posledními vzorky)</a>
+    </div>
 </div>
+
+<div class="row" style="margin-top: 1.5em;">
+    <div class="col-md-6">
+        <h4>Ruční stažení stanice</h4>
+        <a asp-controller="Adm" asp-action="HandUpdate" class="btn btn-warning">Hand update</a>
+    </div>
+</div>
+
+<div class="row" style="margin-top: 1.5em;">
+    <div class="col-md-6">
+        <h4>Náhled scrapu konkrétní stanice</h4>
+        <form id="stationLookupForm" class="form-inline" method="get" action="">
+            <label for="stationLookupId" class="visually-hidden">ID stanice</label>
+            <input type="number" id="stationLookupId" name="id" class="form-control"
+                   placeholder="ID stanice" min="1" max="999" required style="margin-right: 10px;" />
+            <button type="submit" class="btn btn-info">Zobrazit scrap</button>
+        </form>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        document.getElementById('stationLookupForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            var id = document.getElementById('stationLookupId').value;
+            if (id) window.location.href = '@Url.Content("~/Adm/GetStationOverView/")' + encodeURIComponent(id);
+        });
+    </script>
+}

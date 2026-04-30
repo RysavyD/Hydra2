@@ -15,7 +15,7 @@
 | 3 | Quartz refactor + smart heartbeat | ✅ | [phase-3-quartz.md](phase-3-quartz.md) |
 | 4 | Testy (xUnit, snapshot scraperů, integration) | ✅ | [phase-4-tests.md](phase-4-tests.md) |
 | 5 | HTTP hardening + bezpečnost | ✅ | [phase-5-hardening.md](phase-5-hardening.md) |
-| 6 | Mobile + UX fixes | 📋 | |
+| 6 | Mobile + UX fixes | ✅ | [phase-6-mobile-ux.md](phase-6-mobile-ux.md) |
 | 7 | jQuery + bundling | 📋 | |
 | 8 | amCharts 4 → 5 (nebo ECharts) | 📋 | |
 | 9 | TypeScript pro Graf + DevOps | 📋 | |

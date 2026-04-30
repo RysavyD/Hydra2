@@ -5,46 +5,56 @@
 }
 
 <link rel="stylesheet" href="~/lib/daterangepicker/daterangepicker.css" />
+
 <div style="margin-top: 2em;" class="row">
-    <div class="col-md-12" border>
+    <div class="col-md-12">
         <h4>Údaje z většiny stanic jsou zaznamenávané od 29. 7. 2012. Pokud zvolíte starší datum, nebudou vrácena žádná data.</h4>
     </div>
 </div>
+
 <div style="margin-top: 2em;" class="row">
-    <div class="col-md-3 border">
-        <h4>Tok</h4>
-        @Html.DropDownList("river", Model.Rivers)
+    <div class="col-md-3 col-sm-6 border">
+        <label for="river"><h4>Tok</h4></label>
+        @Html.DropDownList("river", Model.Rivers, new { @class = "form-control", aria_label = "Tok" })
     </div>
-    <div class="col-md-3 border">
-        <h4>Stanice</h4>
-        <select id="spot"></select>
+    <div class="col-md-3 col-sm-6 border">
+        <label for="spot"><h4>Stanice</h4></label>
+        <select id="spot" class="form-control" aria-label="Stanice"></select>
     </div>
-    <div class="col-md-3 rangeinput border">
-        <h4>Začátek</h4>
-        <input class="form-control" id="start" type="text" value="@Model.StartDate">
-        <i class="glyphicon glyphicon-calendar fa fa-calendar" style="position: absolute; bottom: 20px; right: 24px; top:auto; cursor: pointer;"></i>
+    <div class="col-md-3 col-sm-6 rangeinput border">
+        <label for="start"><h4>Začátek</h4></label>
+        <input class="form-control" id="start" type="text" value="@Model.StartDate" aria-label="Datum začátku">
+        <i class="glyphicon glyphicon-calendar fa fa-calendar" style="position: absolute; bottom: 20px; right: 24px; top:auto; cursor: pointer;" aria-hidden="true"></i>
     </div>
-    <div class="col-md-3 rangeinput border">
-        <h4>Konec</h4>
-        <input class="form-control" id="stop" type="text" value="@Model.StopDate">
-        <i class="glyphicon glyphicon-calendar fa fa-calendar" style="position: absolute; bottom: 20px; right: 24px; top:auto; cursor: pointer;"></i>
+    <div class="col-md-3 col-sm-6 rangeinput border">
+        <label for="stop"><h4>Konec</h4></label>
+        <input class="form-control" id="stop" type="text" value="@Model.StopDate" aria-label="Datum konce">
+        <i class="glyphicon glyphicon-calendar fa fa-calendar" style="position: absolute; bottom: 20px; right: 24px; top:auto; cursor: pointer;" aria-hidden="true"></i>
     </div>
 </div>
+
 <div style="margin-top: 2em;" class="row">
-    <div class="col-md-3" border>
+    <div class="col-md-6 border">
         <h4>Sledované veličiny</h4>
-        <input type="checkbox" name="type" id="h" value="h" title="h" checked="checked" /> Hladina
-        <input type="checkbox" name="type" id="Q" value="Q" title="Q" checked="checked" /> Průtok
-        <input type="checkbox" name="type" id="t" value="t" title="t" /> Teplota
+        <label class="checkbox-touch">
+            <input type="checkbox" name="type" id="h" value="h" checked="checked" /> Hladina
+        </label>
+        <label class="checkbox-touch">
+            <input type="checkbox" name="type" id="Q" value="Q" checked="checked" /> Průtok
+        </label>
+        <label class="checkbox-touch">
+            <input type="checkbox" name="type" id="t" value="t" /> Teplota
+        </label>
     </div>
     <div class="col-md-3 border">
         <div style="padding-top: 10px;">
-            <div id="Reload" class="btn btn-success btn-lg">Načíst data</div>
+            <button type="button" id="Reload" class="btn btn-success btn-lg">Načíst data</button>
         </div>
     </div>
 </div>
+
 <div style="margin-top: 2em; display: none;" class="row" id="riverInformation">
-    <div class="col-md-12">
+    <div class="col-md-12 table-responsive">
         <table style="width:100%">
             <tbody>
                 <tr>
@@ -82,18 +92,19 @@
                 </tr>
                 <tr>
                     <th>Odkaz na měřící stanici</th>
-                    <td colspan="4"><a href="#" target="_blank" id="riverLink"></a></td>
+                    <td colspan="4"><a href="#" target="_blank" rel="noopener" id="riverLink"></a></td>
                 </tr>
                 <tr>
                     <th>Odkaz na raft.cz s informacemi o toku</th>
-                    <td colspan="4"><a href="#" target="_blank" id="raftLink"></a></td>
+                    <td colspan="4"><a href="#" target="_blank" rel="noopener" id="raftLink"></a></td>
                 </tr>
             </tbody>
         </table>
     </div>
 </div>
+
 <div style="margin-top: 2em; display: none;" class="row" id="reservoirInformation">
-    <div class="col-md-12">
+    <div class="col-md-12 table-responsive">
         <table class="tabulkaStaniceMereni">
             <tbody>
                 <tr>
@@ -118,21 +129,25 @@
                 </tr>
                 <tr>
                     <td>Odkaz na stanici</td>
-                    <td><a href="#" id="reservoirLink"></a></td>
+                    <td><a href="#" target="_blank" rel="noopener" id="reservoirLink"></a></td>
                 </tr>
                 <tr>
                     <th>Odkaz na raft.cz</th>
-                    <td><a href="#" target="_blank" id="raftLink2"></a></td>
+                    <td><a href="#" target="_blank" rel="noopener" id="raftLink2"></a></td>
                 </tr>
             </tbody>
         </table>
     </div>
 </div>
+
 <div style="margin-top: 2em;" class="row">
     <div class="col-md-12">
-        <div id="chartdiv" style="width:100%; height:600px;"></div>
+        <div class="chart-container">
+            <div id="chartdiv"></div>
+            <div id="chartLoading" class="chart-skeleton is-hidden" role="status" aria-live="polite">Načítání dat…</div>
+        </div>
     </div>
-    <div class="col-md-12">
+    <div class="col-md-12 table-responsive">
         <table id="dataTable" class="dataTable"></table>
     </div>
 </div>
@@ -145,6 +160,10 @@
 
     <script src="~/lib/daterangepicker/moment.min.js"></script>
     <script src="~/lib/daterangepicker/daterangepicker.js"></script>
+
+    <style>
+        #chartdiv { width: 100%; height: 100%; }
+    </style>
 
     <script>
         var chart;
@@ -200,13 +219,54 @@
             valueAxis.renderer.opposite = opposite;
             valueAxis.renderer.grid.template.disabled = true;
         }
+
+        function showChartLoading() { $("#chartLoading").removeClass("is-hidden"); }
+        function hideChartLoading() { $("#chartLoading").addClass("is-hidden"); }
     </script>
     <script>
+        var riverId, spotId, start, stop, type;
+
+        // ---- URL state -----------------------------------------------------
+        // Primary: query string  ?riverId=2&spotId=5&start=01/04/2026&stop=08/04/2026&type=hQ
+        // Fallback for legacy bookmarks: hash format  #2#5#01/04/2026#08/04/2026#hQ
+        function readUrlState() {
+            var p = new URLSearchParams(window.location.search);
+            if (p.has("riverId") || p.has("spotId")) {
+                return {
+                    riverId: p.get("riverId"),
+                    spotId: p.get("spotId"),
+                    start: p.get("start"),
+                    stop: p.get("stop"),
+                    type: p.get("type"),
+                };
+            }
+            // Legacy hash fallback
+            var hashes = window.location.hash.split('#');
+            return {
+                riverId: hashes.length > 1 && $.isNumeric(hashes[1]) ? hashes[1] : null,
+                spotId:  hashes.length > 2 ? hashes[2] : null,
+                start:   hashes.length > 3 ? hashes[3] : null,
+                stop:    hashes.length > 4 ? hashes[4] : null,
+                type:    hashes.length > 5 ? hashes[5] : null,
+            };
+        }
+
+        function writeUrlState() {
+            if (!$.isNumeric(riverId) || !$.isNumeric(spotId)) return;
+            var p = new URLSearchParams();
+            p.set("riverId", riverId);
+            p.set("spotId", spotId);
+            if (start) p.set("start", start);
+            if (stop) p.set("stop", stop);
+            if (type) p.set("type", type);
+            history.replaceState(null, "", "?" + p.toString());
+        }
+
+        // ---- Selection handlers --------------------------------------------
         $("#river").change(function() {
-            ShowWaitDialog();
             riverId = $("#river").val();
             spotId = undefined;
-            setUrlHashes();
+            writeUrlState();
 
             $.ajax({
                 type: "GET",
@@ -221,12 +281,10 @@
                     }
                     if (result.length === 1) {
                         spotId = result[0].id;
-                        setUrlHashes();
+                        writeUrlState();
                     }
-                    HideWaitDialog();
                 },
                 error: function(xhr) {
-                    HideWaitDialog();
                     alert("Nastala chyba \n\n" + xhr.responseText);
                 }
             });
@@ -234,7 +292,7 @@
 
         $("#spot").change(function() {
             spotId = $("#spot").val();
-            setUrlHashes();
+            writeUrlState();
         });
 
         $('.rangeinput i').click(function() {
@@ -267,7 +325,7 @@
         });
         $('#start').on('apply.daterangepicker', function() {
             start = $('#start').val();
-            setUrlHashes();
+            writeUrlState();
         });
 
         $('#stop').daterangepicker(dateRangeOptions, function(s) {
@@ -275,20 +333,20 @@
         });
         $('#stop').on('apply.daterangepicker', function() {
             stop = $('#stop').val();
-            setUrlHashes();
+            writeUrlState();
         });
 
         $("input[type=checkbox]").change(function() {
             type = GetSampleTypes();
-            setUrlHashes();
+            writeUrlState();
         });
 
         $("#Reload").click(function() {
             var spot = $("#spot option:selected");
-            if (spot.text() == '') { alert('Není vybrána žádná stanice!'); return; }
-            if (type == '') { alert('Není vybrána žádná veličina!'); return; }
+            if (spot.text() === '') { alert('Není vybrána žádná stanice!'); return; }
+            if (type === '') { alert('Není vybrána žádná veličina!'); return; }
 
-            ShowWaitDialog();
+            showChartLoading();
             $.ajax({
                 type: "GET",
                 url: '@Url.Content("~/Graf/GetData/")',
@@ -299,10 +357,10 @@
                     CreateGraph(result.samples);
                     ShowSpotInformation(result.spot);
                     GenerateDataTable(result.samples);
-                    HideWaitDialog();
+                    hideChartLoading();
                 },
                 error: function(xhr) {
-                    HideWaitDialog();
+                    hideChartLoading();
                     alert("Nastala chyba \n\n" + xhr.responseText);
                 }
             });
@@ -316,8 +374,9 @@
                 $("#river2").text(spot.spa2 == null ? "" : spot.spa2);
                 $("#river3").text(spot.spa3 == null ? "" : spot.spa3);
                 $("#river3e").text(spot.spa3e == null ? "" : spot.spa3e);
-                $("#riverLink").text(spot.link).attr("href", spot.link);
-                $("#raftLink").text(spot.raftLink).attr("href", spot.raftLink);
+                $("#riverLink").text(spot.link).attr("href", spot.link || "#");
+                if (spot.raftLink) { $("#raftLink").text(spot.raftLink).attr("href", spot.raftLink).show(); }
+                else { $("#raftLink").hide(); }
                 $("#riverInformation").show();
             } else {
                 $("#riverInformation").hide();
@@ -326,20 +385,22 @@
                 $("#maxRetHladinaLbl").text(spot.spa3 == null ? "" : spot.spa3);
                 $("#hladZasProstLbl").text(spot.spa2 == null ? "" : spot.spa2);
                 $("#hladStalNadtLbl").text(spot.spa0 == null ? "" : spot.spa0);
-                $("#reservoirLink").text(spot.link).attr("href", spot.link);
-                $("#raftLink2").text(spot.raftLink).attr("href", spot.raftLink);
+                $("#reservoirLink").text(spot.link).attr("href", spot.link || "#");
+                if (spot.raftLink) { $("#raftLink2").text(spot.raftLink).attr("href", spot.raftLink).show(); }
+                else { $("#raftLink2").hide(); }
                 $("#reservoirInformation").show();
             }
         }
 
         function GenerateDataTable(samples) {
-            var trHTML = '<tr><td>Datum</td><td>Hladina</td><td>Průtok</td><td>Teplota</td></tr>';
+            var trHTML = '<thead><tr><th>Datum</th><th>Hladina</th><th>Průtok</th><th>Teplota</th></tr></thead><tbody>';
             $.each(samples, function (i, item) {
                 trHTML += '<tr><td>' + item.Date + '</td><td>' +
                     (item.h != null ? item.h : '') + '</td><td>' +
                     (item.Q != null ? item.Q : '') + '</td><td>' +
                     (item.t != null ? item.t : '') + '</td></tr>';
             });
+            trHTML += '</tbody>';
             $("#dataTable").html(trHTML);
         }
 
@@ -351,18 +412,16 @@
             return selectedTypes;
         }
 
-        var riverId, spotId, start, stop, type;
-
+        // ---- Initial load --------------------------------------------------
         $(document).ready(function() {
-            var hashes = window.location.hash.split('#');
-            var needLoad = false;
+            var s = readUrlState();
+            riverId = s.riverId || undefined;
+            spotId  = s.spotId || undefined;
+            start   = s.start || $("#start").val();
+            stop    = s.stop || $("#stop").val();
 
-            if (hashes.length > 1 && $.isNumeric(hashes[1])) riverId = hashes[1];
-            if (hashes.length > 2) { spotId = hashes[2]; needLoad = true; }
-            start = hashes.length > 3 ? hashes[3] : $("#start").val();
-            stop = hashes.length > 4 ? hashes[4] : $("#stop").val();
-            if (hashes.length > 5) {
-                type = hashes[5];
+            if (s.type) {
+                type = s.type;
                 $("#h").prop('checked', type.includes('h'));
                 $("#Q").prop('checked', type.includes('Q'));
                 $("#t").prop('checked', type.includes('t'));
@@ -370,8 +429,8 @@
                 type = GetSampleTypes();
             }
 
-            if (needLoad) {
-                ShowWaitDialog();
+            if (spotId) {
+                showChartLoading();
                 $("#river").val(riverId);
                 $("#start").val(start);
                 $("#stop").val(stop);
@@ -390,16 +449,9 @@
                         $("#spot").val(spotId);
                         $("#Reload").click();
                     },
-                    error: function() { HideWaitDialog(); }
+                    error: function() { hideChartLoading(); }
                 });
             }
         });
-
-        function setUrlHashes() {
-            if ($.isNumeric(riverId) && $.isNumeric(spotId)) {
-                var newHash = riverId + '#' + spotId + '#' + (start || '') + '#' + (stop || '') + '#' + (type || '');
-                window.location.hash = newHash;
-            }
-        }
     </script>
 }
