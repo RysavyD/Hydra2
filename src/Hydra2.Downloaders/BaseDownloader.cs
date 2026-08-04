@@ -61,7 +61,13 @@ public abstract class BaseDownloader : ISpotInformationDownloader
     protected virtual async Task DownLoadPageAsync(CancellationToken cancellationToken)
     {
         var response = await _httpClient.GetAsync(Link, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            _logger.LogWarning($"Server returned {response.StatusCode} for {Link}");
+            Page = string.Empty;
+            return;
+        }
+
         var bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken);
         Page = Encoding.UTF8.GetString(bytes);
     }

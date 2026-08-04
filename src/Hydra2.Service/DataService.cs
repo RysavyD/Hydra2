@@ -80,15 +80,48 @@ public class DataService : IDataService
             cancellationToken: cancellationToken));
     }
 
+    //public async Task<int> AddSampleAsync(int stationId, float? sampleLevel, float? sampleFlow, float? sampleTemperature, DateTime sampleTimeStamp, CancellationToken cancellationToken = default)
+    //{
+    //    var tableName = SampleTableName.ForStation(stationId);
+
+    //    await using var connection = new SqlConnection(_connectionString);
+    //    return await connection.ExecuteAsync(new CommandDefinition(
+    //        $@"IF NOT EXISTS (SELECT 1 FROM [Hydra].[{tableName}] WHERE [TimeStamp] = @sampleTimeStamp)
+    //               INSERT INTO [Hydra].[{tableName}] ([TimeStamp], [Level], [Flow], [Temperature])
+    //               VALUES (@sampleTimeStamp, @sampleLevel, @sampleFlow, @sampleTemperature)",
+    //        new
+    //        {
+    //            sampleTimeStamp,
+    //            sampleLevel,
+    //            sampleFlow,
+    //            sampleTemperature
+    //        },
+    //        cancellationToken: cancellationToken));
+    //}
+
     public async Task<int> AddSampleAsync(int stationId, float? sampleLevel, float? sampleFlow, float? sampleTemperature, DateTime sampleTimeStamp, CancellationToken cancellationToken = default)
     {
         var tableName = SampleTableName.ForStation(stationId);
 
         await using var connection = new SqlConnection(_connectionString);
         return await connection.ExecuteAsync(new CommandDefinition(
-            $@"IF NOT EXISTS (SELECT 1 FROM [Hydra].[{tableName}] WHERE [TimeStamp] = @sampleTimeStamp)
-                   INSERT INTO [Hydra].[{tableName}] ([TimeStamp], [Level], [Flow], [Temperature])
-                   VALUES (@sampleTimeStamp, @sampleLevel, @sampleFlow, @sampleTemperature)",
+            $@"IF NOT EXISTS (
+    SELECT 1
+    FROM [Hydra].[{tableName}]
+    WHERE [TimeStamp] = @sampleTimeStamp
+)
+BEGIN
+    INSERT INTO [Hydra].[{tableName}]
+        ([TimeStamp], [Level], [Flow], [Temperature])
+    VALUES
+        (@sampleTimeStamp, @sampleLevel, @sampleFlow, @sampleTemperature);
+
+    SELECT 1;
+END
+ELSE
+BEGIN
+    SELECT 0;
+END",
             new
             {
                 sampleTimeStamp,

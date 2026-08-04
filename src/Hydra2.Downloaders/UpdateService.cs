@@ -125,7 +125,7 @@ public class UpdateService : IUpdateService
                     station.Id, sample.Level, sample.Flow, sample.Temperature, sample.TimeStamp, cancellationToken);
             }
 
-            _logger.LogDebug("Station {StationId} ok, {Count} samples added", stationId, samplesAdded);
+            _logger.LogWarning("Station {StationId} ok, {Count} samples added", stationId, samplesAdded);
             _errorTracker.RecordSuccess(stationId);
             return (true, samplesAdded, null);
         }
