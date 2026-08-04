@@ -5,9 +5,112 @@
    which automatically switch with the theme.
    ============================================================ */
 
+/* ============================================================
+   Brand — Hydra² water theme
+   Overrides Bootstrap 5 CSS variables without a Sass build.
+   Primary: ocean blue (#0077b6), accent: water teal (#00b4d8)
+   ============================================================ */
+:root,
+[data-bs-theme="light"] {
+    --bs-primary:            #0077b6;
+    --bs-primary-rgb:        0, 119, 182;
+    --bs-link-color:         #0077b6;
+    --bs-link-color-rgb:     0, 119, 182;
+    --bs-link-hover-color:   #005a8e;
+    --bs-link-hover-color-rgb: 0, 90, 142;
+
+    /* Navbar background — deep navy */
+    --hydra-navbar-bg:       #0d2d5a;
+
+    /* Subtle water tint for hero / jumbotron */
+    --hydra-hero-bg:         #e8f4fb;
+    --hydra-hero-border:     #b3d9f0;
+}
+
+[data-bs-theme="dark"] {
+    --bs-primary:            #48cae4;
+    --bs-primary-rgb:        72, 202, 228;
+    --bs-link-color:         #48cae4;
+    --bs-link-color-rgb:     72, 202, 228;
+    --bs-link-hover-color:   #90e0ef;
+    --bs-link-hover-color-rgb: 144, 224, 239;
+
+    --hydra-navbar-bg:       #071526;
+    --hydra-hero-bg:         #0a1e30;
+    --hydra-hero-border:     #1a4a6e;
+}
+
+/* Override .btn-primary to pick up the brand primary */
+.btn-primary {
+    --bs-btn-bg:             var(--bs-primary);
+    --bs-btn-border-color:   var(--bs-primary);
+    --bs-btn-hover-bg:       #005a8e;
+    --bs-btn-hover-border-color: #004e7d;
+    --bs-btn-active-bg:      #004e7d;
+    --bs-btn-disabled-bg:    var(--bs-primary);
+}
+[data-bs-theme="dark"] .btn-primary {
+    --bs-btn-bg:             #0077b6;
+    --bs-btn-border-color:   #0077b6;
+    --bs-btn-hover-bg:       #48cae4;
+    --bs-btn-hover-border-color: #48cae4;
+}
+
 body {
     padding-top: 56px;   /* height of BS5 fixed-top navbar */
     padding-bottom: 20px;
+}
+
+/* ============================================================
+   Navigation — Hydra brand navbar
+   ============================================================ */
+.hydra-navbar {
+    background-color: var(--hydra-navbar-bg) !important;
+    border-bottom: 2px solid rgba(72, 202, 228, 0.35);  /* teal accent stripe */
+}
+
+.hydra-navbar .navbar-brand {
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    color: #ffffff !important;
+}
+
+.hydra-navbar .navbar-brand::after {
+    content: "²";
+    font-size: 0.65em;
+    vertical-align: super;
+    margin-left: 1px;
+    color: #48cae4;  /* water teal superscript */
+}
+
+/* ============================================================
+   Footer
+   ============================================================ */
+.hydra-footer {
+    padding: 0.75rem 0;
+}
+
+.hydra-github-link {
+    color: var(--bs-secondary-color);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    transition: color 0.15s;
+}
+.hydra-github-link:hover {
+    color: var(--bs-primary);
+    text-decoration: none;
+}
+
+/* ============================================================
+   Hero section — water-tinted background
+   ============================================================ */
+.hero-section {
+    margin-top: 1.5em;
+    background-color: var(--hydra-hero-bg) !important;
+    border: 1px solid var(--hydra-hero-border);
+    border-left: 4px solid var(--bs-primary);
 }
 
 /* ============================================================
@@ -26,14 +129,6 @@ body {
 }
 .theme-toggle:hover { background: rgba(255, 255, 255, 0.1); }
 .theme-toggle:focus-visible { outline-offset: 1px; }
-
-/* ============================================================
-   Hero section (replaces .jumbotron from Bootstrap 3)
-   Uses BS5 bg-body-secondary which auto-adapts to dark mode.
-   ============================================================ */
-.hero-section {
-    margin-top: 1.5em;
-}
 
 /* ============================================================
    Description list horizontal layout (BS5 dropped .dl-horizontal)

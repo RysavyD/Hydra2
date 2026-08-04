@@ -23,9 +23,9 @@
     <link rel="stylesheet" href="~/css/site.bundle.css" asp-append-version="true" />
 </head>
 <body>
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top hydra-navbar">
         <div class="container">
-            <a class="navbar-brand" asp-controller="Home" asp-action="Index">Hydra 2</a>
+            <a class="navbar-brand" asp-controller="Home" asp-action="Index">Hydra</a>
             <button type="button" class="navbar-toggler"
                     data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
                     aria-controls="navbarCollapse" aria-expanded="false"
@@ -51,8 +51,12 @@
     <div class="container body-content">
         @RenderBody()
         <hr />
-        <footer>
-            <p>&copy; @DateTime.Now.Year</p>
+        <footer class="hydra-footer d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <span class="text-body-secondary small">&copy; @DateTime.Now.Year Hydra²</span>
+            <a href="https://github.com/RysavyD/Hydra2" target="_blank" rel="noopener"
+               class="hydra-github-link small" aria-label="Hydra2 na GitHubu">
+                <i class="bi bi-github" aria-hidden="true"></i> GitHub
+            </a>
         </footer>
     </div>
 
