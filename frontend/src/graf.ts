@@ -13,9 +13,9 @@ declare const am5themes_Animated: any;
 declare const am5locales_cs_CZ: any;
 
 interface Sample {
-    Date: string;
+    date: string;
     h: number | null;
-    Q: number | null;
+    q: number | null;
     t: number | null;
 }
 
@@ -59,9 +59,9 @@ function disposeChart(): void {
 
 function generateChartData(data: Sample[]): Array<{ date: number; h: number | null; Q: number | null; t: number | null }> {
     return data.map((item) => ({
-        date: new Date(item.Date).getTime(),
+        date: new Date(item.date).getTime(),
         h: item.h,
-        Q: item.Q,
+        Q: item.q,
         t: item.t,
     }));
 }
@@ -224,9 +224,9 @@ function showSpotInformation(spot: SpotInfo): void {
 function generateDataTable(samples: Sample[]): void {
     let html = "<thead><tr><th>Datum</th><th>Hladina</th><th>Průtok</th><th>Teplota</th></tr></thead><tbody>";
     for (const item of samples) {
-        html += "<tr><td>" + item.Date + "</td>"
+        html += "<tr><td>" + item.date + "</td>"
             + "<td>" + (item.h != null ? item.h : "") + "</td>"
-            + "<td>" + (item.Q != null ? item.Q : "") + "</td>"
+            + "<td>" + (item.q != null ? item.q : "") + "</td>"
             + "<td>" + (item.t != null ? item.t : "") + "</td></tr>";
     }
     html += "</tbody>";
