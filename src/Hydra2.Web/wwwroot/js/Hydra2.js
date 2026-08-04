@@ -1,18 +1,16 @@
-function ShowWaitDialog() {
-    bootbox.dialog({
-        message: "Zpracovávám ....",
-        closeButton: false,
-    });
-}
-
-function HideWaitDialog() {
-    bootbox.hideAll();
-}
-
-// ----- Theme toggle (Phase 10) ----------------------------------------------
-// Cycles auto -> light -> dark -> auto. "auto" follows OS via @media.
+// ----- Theme toggle (Phase 10 — updated Phase 11 for BS5 data-bs-theme) -----
+// Cycles auto -> light -> dark -> auto. "auto" follows OS via prefers-color-scheme.
+// Uses Bootstrap 5.3 native data-bs-theme attribute on <html>.
 (function () {
     var STORAGE_KEY = "hydra2-theme";
+
+    function getOsPreference() {
+        try {
+            return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        } catch (e) {
+            return "light";
+        }
+    }
 
     function currentMode() {
         var stored = null;
@@ -22,14 +20,15 @@ function HideWaitDialog() {
     }
 
     function applyMode(mode) {
-        var root = document.documentElement;
+        var effective;
         if (mode === "auto") {
-            root.removeAttribute("data-theme");
             try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* blocked */ }
+            effective = getOsPreference();
         } else {
-            root.setAttribute("data-theme", mode);
             try { localStorage.setItem(STORAGE_KEY, mode); } catch (e) { /* blocked */ }
+            effective = mode;
         }
+        document.documentElement.setAttribute("data-bs-theme", effective);
     }
 
     function nextMode(mode) {

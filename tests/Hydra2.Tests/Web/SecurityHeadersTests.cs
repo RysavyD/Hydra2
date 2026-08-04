@@ -47,8 +47,9 @@ public class SecurityHeadersTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task Static_files_under_lib_have_immutable_cache()
     {
+        // Use Bootstrap 5 bundle (Phase 11 — jQuery removed from lib usage)
         var client = _factory.CreateClient();
-        var response = await client.GetAsync("/lib/jquery/jquery.min.js");
+        var response = await client.GetAsync("/lib/bootstrap/js/bootstrap.bundle.min.js");
 
         response.IsSuccessStatusCode.Should().BeTrue();
         response.Headers.CacheControl!.Public.Should().BeTrue();

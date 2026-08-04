@@ -17,14 +17,16 @@ public class WebOptimizerBundleTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
-    public async Task Css_bundle_contains_bootstrap_and_site_css()
+    public async Task Css_bundle_contains_bootstrap5_bootstrap_icons_and_site_css()
     {
         var client = _factory.CreateClient();
         var body = await client.GetStringAsync("/css/site.bundle.css");
 
-        // bootstrap signature
-        body.Should().Contain("Bootstrap", "the bundle should include bootstrap.min.css");
-        // own site.css signature
+        // Bootstrap 5 signature
+        body.Should().Contain("Bootstrap", "the bundle should include Bootstrap 5 CSS");
+        // Bootstrap Icons signature
+        body.Should().Contain("bootstrap-icons", "the bundle should include bootstrap-icons CSS");
+        // site.css signature
         body.Should().Contain(".chart-container", "the bundle should include site.css with chart-container class");
     }
 
@@ -39,14 +41,18 @@ public class WebOptimizerBundleTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
-    public async Task Js_bundle_contains_jquery_and_bootbox_and_hydra2()
+    public async Task Js_bundle_contains_bootstrap5_and_hydra2_but_not_jquery()
     {
         var client = _factory.CreateClient();
         var body = await client.GetStringAsync("/js/site.bundle.js");
 
-        body.Should().Contain("jQuery", "the bundle should include jQuery");
-        body.Should().Contain("v3.7", "the bundle should include jQuery 3.7+");
-        body.Should().Contain("bootbox", "the bundle should include bootbox");
-        body.Should().Contain("ShowWaitDialog", "the bundle should include Hydra2.js (ShowWaitDialog function)");
+        // Bootstrap 5 bundle includes Popper
+        body.Should().Contain("Popper", "the bundle should include Bootstrap 5 bundle (with Popper)");
+        // Hydra2.js is included
+        body.Should().Contain("hydra2-theme", "the bundle should include Hydra2.js (theme toggle)");
+        // jQuery library must NOT be present (Bootstrap 5 has jQueryInterface for back-compat,
+        // but the actual jQuery library identifies itself with "jQuery.fn.jquery").
+        body.Should().NotContain("jQuery.fn.jquery", "jQuery library was dropped in Phase 11");
+        body.Should().NotContain("bootbox", "bootbox was dropped in Phase 11");
     }
 }

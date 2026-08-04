@@ -42,7 +42,8 @@ public class PwaAndThemeTests : IClassFixture<TestWebApplicationFactory>
         response.IsSuccessStatusCode.Should().BeTrue();
         var body = await response.Content.ReadAsStringAsync();
         body.Should().Contain("hydra2-theme", "theme-init must read the same localStorage key");
-        body.Should().Contain("data-theme", "theme-init must set data-theme attribute");
+        // Phase 11: Bootstrap 5 native dark mode via data-bs-theme (replaced custom data-theme).
+        body.Should().Contain("data-bs-theme", "theme-init must set Bootstrap 5 data-bs-theme attribute");
     }
 
     [Fact]
@@ -51,10 +52,10 @@ public class PwaAndThemeTests : IClassFixture<TestWebApplicationFactory>
         var client = _factory.CreateClient();
         var body = await client.GetStringAsync("/css/site.bundle.css");
 
-        body.Should().Contain("--bg", "site.css must define CSS custom properties for theming");
-        body.Should().Contain("data-theme=\"dark\"", "dark theme override must be present");
-        // CSS minifier strips the space after the colon ("prefers-color-scheme:dark").
-        body.Should().Contain("prefers-color-scheme:", "system preference media query must be present");
+        // Phase 11: Bootstrap 5 native dark mode — no custom --bg vars, uses --bs-* tokens.
+        // Auto-mode (prefers-color-scheme) is now handled in theme-init.js, not in CSS.
+        body.Should().Contain("--bs-body-bg", "Bootstrap 5 CSS must define its body background token");
+        body.Should().Contain("data-bs-theme", "Bootstrap 5 native dark mode selector must be present");
     }
 
     [Fact]

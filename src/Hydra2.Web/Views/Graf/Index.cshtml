@@ -5,40 +5,48 @@
 }
 
 @*
-    Client-side logic (chart rendering, daterangepicker wiring, URL state) is in
+    Client-side logic (chart rendering, Flatpickr wiring, URL state) is in
     frontend/src/graf.ts compiled to wwwroot/js/graf.min.js via `npm run build`.
 *@
 
-<link rel="stylesheet" href="~/lib/daterangepicker/daterangepicker.css" />
+<link rel="stylesheet" href="~/lib/flatpickr/flatpickr.min.css" asp-append-version="true" />
 
-<div style="margin-top: 2em;" class="row">
+<div class="mt-4 row">
     <div class="col-md-12">
         <h4>Údaje z většiny stanic jsou zaznamenávané od 29. 7. 2012. Pokud zvolíte starší datum, nebudou vrácena žádná data.</h4>
     </div>
 </div>
 
-<div style="margin-top: 2em;" class="row">
+<div class="mt-4 row">
     <div class="col-md-3 col-sm-6 border">
         <label for="river"><h4>Tok</h4></label>
-        @Html.DropDownList("river", Model.Rivers, new { @class = "form-control", aria_label = "Tok" })
+        @Html.DropDownList("river", Model.Rivers, new { @class = "form-select", aria_label = "Tok" })
     </div>
     <div class="col-md-3 col-sm-6 border">
         <label for="spot"><h4>Stanice</h4></label>
-        <select id="spot" class="form-control" aria-label="Stanice"></select>
+        <select id="spot" class="form-select" aria-label="Stanice"></select>
     </div>
     <div class="col-md-3 col-sm-6 rangeinput border">
         <label for="start"><h4>Začátek</h4></label>
-        <input class="form-control" id="start" type="text" value="@Model.StartDate" aria-label="Datum začátku">
-        <i class="glyphicon glyphicon-calendar fa fa-calendar" style="position: absolute; bottom: 20px; right: 24px; top:auto; cursor: pointer;" aria-hidden="true"></i>
+        <div class="input-group">
+            <input class="form-control" id="start" type="text" value="@Model.StartDate" aria-label="Datum začátku" readonly="readonly">
+            <button type="button" class="btn btn-outline-secondary calendar-trigger" data-target="start" aria-label="Otevřít kalendář">
+                <i class="bi bi-calendar-event" aria-hidden="true"></i>
+            </button>
+        </div>
     </div>
     <div class="col-md-3 col-sm-6 rangeinput border">
         <label for="stop"><h4>Konec</h4></label>
-        <input class="form-control" id="stop" type="text" value="@Model.StopDate" aria-label="Datum konce">
-        <i class="glyphicon glyphicon-calendar fa fa-calendar" style="position: absolute; bottom: 20px; right: 24px; top:auto; cursor: pointer;" aria-hidden="true"></i>
+        <div class="input-group">
+            <input class="form-control" id="stop" type="text" value="@Model.StopDate" aria-label="Datum konce" readonly="readonly">
+            <button type="button" class="btn btn-outline-secondary calendar-trigger" data-target="stop" aria-label="Otevřít kalendář">
+                <i class="bi bi-calendar-event" aria-hidden="true"></i>
+            </button>
+        </div>
     </div>
 </div>
 
-<div style="margin-top: 2em;" class="row">
+<div class="mt-4 row">
     <div class="col-md-6 border">
         <h4>Sledované veličiny</h4>
         <label class="checkbox-touch">
@@ -52,15 +60,15 @@
         </label>
     </div>
     <div class="col-md-3 border">
-        <div style="padding-top: 10px;">
+        <div class="pt-2">
             <button type="button" id="Reload" class="btn btn-success btn-lg">Načíst data</button>
         </div>
     </div>
 </div>
 
-<div style="margin-top: 2em; display: none;" class="row" id="riverInformation">
+<div class="mt-4 row d-none" id="riverInformation">
     <div class="col-md-12 table-responsive">
-        <table style="width:100%">
+        <table class="w-100">
             <tbody>
                 <tr>
                     <th colspan="4">Limity pro stupně povodňové aktivity</th>
@@ -68,31 +76,31 @@
                 <tr>
                     <th>1. stupeň</th>
                     <td><strong>H</strong> = <span id="river1"></span> [cm]</td>
-                    <td style="width:20px;"><div style="background-color:#00FF00;" class="informBox"></div></td>
+                    <td class="info-box-cell"><div style="background-color:#00FF00;" class="informBox"></div></td>
                     <td>1.SPA (bdělost)</td>
                 </tr>
                 <tr>
                     <th>2. stupeň</th>
                     <td><strong>H</strong> = <span id="river2"></span> [cm]</td>
-                    <td style="width:20px;"><div style="background-color:#FFFF00;" class="informBox"></div></td>
+                    <td class="info-box-cell"><div style="background-color:#FFFF00;" class="informBox"></div></td>
                     <td>2.SPA (pohotovost)</td>
                 </tr>
                 <tr>
                     <th>3. stupeň</th>
                     <td><strong>H</strong> = <span id="river3"></span> [cm]</td>
-                    <td style="width:20px;"><div style="background-color:#FF0000;" class="informBox"></div></td>
+                    <td class="info-box-cell"><div style="background-color:#FF0000;" class="informBox"></div></td>
                     <td>3.SPA (ohrožení)</td>
                 </tr>
                 <tr>
                     <th>3. stupeň</th>
                     <td><strong>H</strong> = <span id="river3e"></span> [cm]</td>
-                    <td style="width:20px;"><div style="background-color:#FF0000;" class="informBox"></div></td>
+                    <td class="info-box-cell"><div style="background-color:#FF0000;" class="informBox"></div></td>
                     <td>3.SPA (extrémní povodeň)</td>
                 </tr>
                 <tr>
                     <th>Sucho</th>
                     <td><strong>H</strong> = <span id="river0"></span> [cm]</td>
-                    <td style="width:20px;"><div style="background-color:#cceeff;" class="informBox"></div></td>
+                    <td class="info-box-cell"><div style="background-color:#cceeff;" class="informBox"></div></td>
                     <td></td>
                 </tr>
                 <tr>
@@ -101,14 +109,14 @@
                 </tr>
                 <tr>
                     <th>Odkaz na raft.cz s informacemi o toku</th>
-                    <td colspan="4"><a href="#" target="_blank" rel="noopener" id="raftLink"></a></td>
+                    <td colspan="4"><a href="#" target="_blank" rel="noopener" id="raftLink" class="d-none"></a></td>
                 </tr>
             </tbody>
         </table>
     </div>
 </div>
 
-<div style="margin-top: 2em; display: none;" class="row" id="reservoirInformation">
+<div class="mt-4 row d-none" id="reservoirInformation">
     <div class="col-md-12 table-responsive">
         <table class="tabulkaStaniceMereni">
             <tbody>
@@ -138,14 +146,14 @@
                 </tr>
                 <tr>
                     <th>Odkaz na raft.cz</th>
-                    <td><a href="#" target="_blank" rel="noopener" id="raftLink2"></a></td>
+                    <td><a href="#" target="_blank" rel="noopener" id="raftLink2" class="d-none"></a></td>
                 </tr>
             </tbody>
         </table>
     </div>
 </div>
 
-<div style="margin-top: 2em;" class="row">
+<div class="mt-4 row">
     <div class="col-md-12">
         <div class="chart-container">
             <div id="chartdiv"></div>
@@ -163,8 +171,8 @@
     <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js" crossorigin="anonymous"></script>
     <script src="https://cdn.amcharts.com/lib/5/locales/cs_CZ.js" crossorigin="anonymous"></script>
 
-    <script src="~/lib/daterangepicker/moment.min.js" asp-append-version="true"></script>
-    <script src="~/lib/daterangepicker/daterangepicker.js" asp-append-version="true"></script>
+    <script src="~/lib/flatpickr/flatpickr.min.js" asp-append-version="true"></script>
+    <script src="~/lib/flatpickr/l10n/cs.js" asp-append-version="true"></script>
 
     <script src="~/js/graf.min.js" asp-append-version="true"></script>
 }

@@ -50,12 +50,13 @@ builder.Services.AddWebOptimizer(pipeline =>
 {
     pipeline.AddCssBundle("/css/site.bundle.css",
         "/lib/bootstrap/css/bootstrap.min.css",
+        "/lib/bootstrap-icons/bootstrap-icons.min.css",
         "/css/site.css");
 
+    // jQuery and bootbox removed in Phase 11.
+    // bootstrap.bundle.min.js includes Popper — replaces old bootstrap.min.js.
     pipeline.AddJavaScriptBundle("/js/site.bundle.js",
-        "/lib/jquery/jquery.min.js",
-        "/lib/bootbox/bootbox.min.js",
-        "/lib/bootstrap/js/bootstrap.min.js",
+        "/lib/bootstrap/js/bootstrap.bundle.min.js",
         "/js/Hydra2.js");
 });
 

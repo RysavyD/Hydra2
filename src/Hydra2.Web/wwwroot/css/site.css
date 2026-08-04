@@ -1,78 +1,24 @@
 /* ============================================================
-   Theme tokens (Phase 10 — dark mode)
+   Custom site styles — Hydra2 Phase 11 (Bootstrap 5 + vanilla JS)
+   Dark mode is handled by Bootstrap 5.3 native data-bs-theme attribute.
+   Custom elements that are not BS5 components use var(--bs-*) tokens
+   which automatically switch with the theme.
    ============================================================ */
-:root {
-    --bg: #ffffff;
-    --bg-elevated: #f5f7fa;
-    --text: #222222;
-    --text-muted: #6c757d;
-    --link: #2479f6;
-    --link-hover: #185fc3;
-    --border: #dddddd;
-    --table-stripe: #fafafa;
-    color-scheme: light;
-}
-
-:root[data-theme="dark"] {
-    --bg: #1a1d20;
-    --bg-elevated: #25292d;
-    --text: #e6e6e6;
-    --text-muted: #a8b0b8;
-    --link: #66a8ff;
-    --link-hover: #a0c8ff;
-    --border: #3a3f44;
-    --table-stripe: #22262a;
-    color-scheme: dark;
-}
-
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-        --bg: #1a1d20;
-        --bg-elevated: #25292d;
-        --text: #e6e6e6;
-        --text-muted: #a8b0b8;
-        --link: #66a8ff;
-        --link-hover: #a0c8ff;
-        --border: #3a3f44;
-        --table-stripe: #22262a;
-        color-scheme: dark;
-    }
-}
 
 body {
-    padding-top: 50px;
+    padding-top: 56px;   /* height of BS5 fixed-top navbar */
     padding-bottom: 20px;
-    background-color: var(--bg);
-    color: var(--text);
 }
 
-a, a:visited { color: var(--link); }
-a:hover, a:focus { color: var(--link-hover); }
-
-input, select, textarea {
-    background-color: var(--bg-elevated);
-    color: var(--text);
-    border-color: var(--border);
-}
-
-table { color: var(--text); }
-.dataTable, .dataTable tr, .dataTable td {
-    border-color: var(--border) !important;
-}
-.dataTable tr:nth-child(odd) td { background-color: var(--table-stripe); }
-
-.jumbotron {
-    background-color: var(--bg-elevated);
-    color: var(--text);
-}
-
-/* Theme toggle button in navbar */
+/* ============================================================
+   Navigation / theme toggle button
+   ============================================================ */
 .theme-toggle {
     background: transparent;
     border: 1px solid rgba(255, 255, 255, 0.4);
     color: #ffffff;
     padding: 6px 12px;
-    margin: 8px 0;
+    margin: 4px 0;
     border-radius: 4px;
     cursor: pointer;
     font-size: 0.9em;
@@ -81,42 +27,79 @@ table { color: var(--text); }
 .theme-toggle:hover { background: rgba(255, 255, 255, 0.1); }
 .theme-toggle:focus-visible { outline-offset: 1px; }
 
+/* ============================================================
+   Hero section (replaces .jumbotron from Bootstrap 3)
+   Uses BS5 bg-body-secondary which auto-adapts to dark mode.
+   ============================================================ */
+.hero-section {
+    margin-top: 1.5em;
+}
 
-/* Set padding to keep content from hitting the edges */
+/* ============================================================
+   Description list horizontal layout (BS5 dropped .dl-horizontal)
+   ============================================================ */
+.dl-horizontal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0;
+}
+.dl-horizontal dt {
+    width: 200px;
+    white-space: normal;
+    font-weight: bold;
+}
+.dl-horizontal dd {
+    flex: 1 1 calc(100% - 200px);
+    margin-left: 1em;
+    margin-bottom: 0;
+}
+
+/* ============================================================
+   Layout helpers
+   ============================================================ */
 .body-content {
     padding-left: 15px;
     padding-right: 15px;
 }
-
-/* Override the default bootstrap behavior where horizontal description lists
-   will truncate terms that are too long to fit in the left column
-*/
-.dl-horizontal dt {
-    white-space: normal;
-}
-
-/* Set width on the form input elements since they're 100% wide by default */
-input,
-select,
-textarea {
-    max-width: 280px;
-}
-
 
 .border {
     border-radius: 5px;
     padding-bottom: 10px;
 }
 
+/* Set max-width on form inputs so they don't span the full container */
+input,
+select,
+textarea {
+    max-width: 280px;
+}
+
+/* ============================================================
+   Graf page — flood level information table
+   ============================================================ */
 .informBox {
     width: 15px;
     height: 15px;
-    border: 1px solid black;
+    border: 1px solid var(--bs-border-color, #000);
 }
 
-.dataTable, .dataTable tr, .dataTable td {
-    border: 1px solid black;
+.info-box-cell {
+    width: 20px;
+}
+
+/* ============================================================
+   Data table (measurement values under chart)
+   Uses BS5 CSS variables for automatic dark mode.
+   ============================================================ */
+.dataTable,
+.dataTable tr,
+.dataTable td {
+    border: 1px solid var(--bs-border-color, #000);
     padding: 5px;
+}
+
+.dataTable tr:nth-child(odd) td {
+    background-color: var(--bs-tertiary-bg, #fafafa);
 }
 
 /* ============================================================
@@ -132,13 +115,13 @@ textarea {
     position: relative;
 }
 
-/* amCharts root fills the container (was inline style in Graf/Index.cshtml) */
+/* amCharts root fills the container */
 #chartdiv {
     width: 100%;
     height: 100%;
 }
 
-/* Skeleton placeholder shown while AJAX is in flight */
+/* Skeleton placeholder shown while fetch is in flight */
 .chart-skeleton {
     position: absolute;
     inset: 0;
@@ -147,12 +130,12 @@ textarea {
     justify-content: center;
     background: repeating-linear-gradient(
         45deg,
-        #f5f7fa,
-        #f5f7fa 10px,
-        #eef1f5 10px,
-        #eef1f5 20px
+        var(--bs-tertiary-bg, #f5f7fa),
+        var(--bs-tertiary-bg, #f5f7fa) 10px,
+        var(--bs-secondary-bg, #eef1f5) 10px,
+        var(--bs-secondary-bg, #eef1f5) 20px
     );
-    color: #6c757d;
+    color: var(--bs-secondary-color, #6c757d);
     font-size: 1.1em;
     border-radius: 4px;
     pointer-events: none;
@@ -172,7 +155,7 @@ textarea {
     min-height: 44px;
     transition: background-color 0.15s ease-in-out;
 }
-.checkbox-touch:hover { background-color: #f0f3f7; }
+.checkbox-touch:hover { background-color: var(--bs-tertiary-bg, #f0f3f7); }
 .checkbox-touch input[type="checkbox"] {
     width: 20px;
     height: 20px;
@@ -180,28 +163,9 @@ textarea {
     cursor: pointer;
 }
 
-/* Make table responsive on small screens */
-.table-responsive {
-    -webkit-overflow-scrolling: touch;
-    overflow-x: auto;
-}
-
-/* Visually hide labels but keep them for screen readers */
-.visually-hidden {
-    position: absolute !important;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-}
-
 /* Visible focus ring for keyboard navigation */
 :focus-visible {
-    outline: 2px solid #2479f6;
+    outline: 2px solid var(--bs-link-color, #2479f6);
     outline-offset: 2px;
 }
 
@@ -211,10 +175,6 @@ textarea {
         width: 100%;
         font-size: 1.15em;
         padding: 12px 16px;
-    }
-
-    .navbar-fixed-top + .container .row {
-        margin-top: 1em !important;
     }
 
     /* Stacked controls take full width on mobile */

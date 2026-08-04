@@ -15,7 +15,7 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "noEmit": true,
-    "types": ["jquery"]
+    "types": []
   },
   "include": ["src/**/*.ts"]
 }
