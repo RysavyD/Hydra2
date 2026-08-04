@@ -20,7 +20,7 @@
 | 8 | jQuery 3.7 + bundling | ✅ | [phase-8-jquery-bundling.md](phase-8-jquery-bundling.md) |
 | 9 | TypeScript pro Graf + DevOps | ✅ | [phase-9-typescript.md](phase-9-typescript.md) |
 | 10 | PWA + dark mode | ✅ | [phase-10-pwa-darkmode.md](phase-10-pwa-darkmode.md) |
-| 11 | Bootstrap 5 + drop jQuery | 📋 | Plánováno — viz níže |
+| 11 | Bootstrap 5 + drop jQuery | ✅ | [phase-11-bootstrap5.md](phase-11-bootstrap5.md) |
 | 12 | Cleanup — smazání starých projektů | 💤 | Po cutoveru staging → prod |
 
 ---
@@ -387,8 +387,7 @@ Pokud bude potřeba dialog v budoucnu, použít HTML5 `<dialog>` element (nativn
 ## TL;DR — kde teď jsme
 
 ```
-✅ Fáze 0 – 10   hotovo a pushnuto (14 commitů, 82/82 testů)
-📋 Fáze 11       Bootstrap 5 + drop jQuery (vanilla JS rewrite)
+✅ Fáze 0 – 11   hotovo a pushnuto (15+ commitů, 82/82 testů)
 💤 Fáze 12       cleanup starých .NET Framework projektů
 ```
 
