@@ -241,3 +241,6 @@ _Pvt_Extensions
 # Frontend build artifacts (Phase 9 — TypeScript)
 frontend/node_modules/
 frontend/*.tsbuildinfo
+
+# Hydra2.DownLoad diagnostic page dumps
+dumps/

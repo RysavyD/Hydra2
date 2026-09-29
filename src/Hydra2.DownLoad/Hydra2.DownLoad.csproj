@@ -4,6 +4,8 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Hydra2.DownLoad</RootNamespace>
     <AssemblyName>Hydra2.DownLoad</AssemblyName>
+    <!-- Stejné user secrets jako Hydra2.Web, aby se sdílel connection string. -->
+    <UserSecretsId>hydra2-web-user-secrets</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,6 +15,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Hydra2.Downloaders\Hydra2.Downloaders.csproj" />
+    <ProjectReference Include="..\Hydra2.Service\Hydra2.Service.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

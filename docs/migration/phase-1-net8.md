@@ -160,10 +160,15 @@ dotnet build Hydra2.net8.sln
 cd src/Hydra2.Web
 dotnet run
 
-# Console tester
+# Console tester (diagnostika stahování) – zeptá se na ID stanice nebo URL
 cd src/Hydra2.DownLoad
 dotnet run
+# nebo rovnou: dotnet run -- 123   /   dotnet run -- "https://..."
 ```
+
+Console tester sdílí user secrets s webem (`hydra2-web-user-secrets`), takže connection string
+pro režim „ID stanice“ se vezme odtud (případně `appsettings.json` nebo env `Hydra2__ConnectionString`).
+Při chybě nebo 0 záznamech uloží surovou stránku do `dumps/page-*.html`.
 
 Default URL: `https://localhost:7001` (viz `Properties/launchSettings.json`).
 
