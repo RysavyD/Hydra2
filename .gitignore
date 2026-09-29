@@ -244,3 +244,4 @@ frontend/*.tsbuildinfo
 
 # Hydra2.DownLoad diagnostic page dumps
 dumps/
+/.github
