@@ -1,6 +1,6 @@
 # Hydra2 — Migrační roadmap
 
-> Aktualizováno: 2026-04-29
+> Aktualizováno: 2026-10-05
 > Status legenda: ✅ hotovo · ⏳ čeká · 📋 naplánováno · 💤 odloženo
 
 ---
@@ -22,6 +22,7 @@
 | 10 | PWA + dark mode | ✅ | [phase-10-pwa-darkmode.md](phase-10-pwa-darkmode.md) |
 | 11 | Bootstrap 5 + drop jQuery | ✅ | [phase-11-bootstrap5.md](phase-11-bootstrap5.md) |
 | 12 | Cleanup — smazání starých projektů | 💤 | Po cutoveru staging → prod |
+| 13 | Upgrade na .NET 10 (LTS) | ✅ | [phase-13-net10.md](phase-13-net10.md), větev `net10-migration` |
 
 ---
 
@@ -388,6 +389,7 @@ Pokud bude potřeba dialog v budoucnu, použít HTML5 `<dialog>` element (nativn
 
 ```
 ✅ Fáze 0 – 11   hotovo a pushnuto (15+ commitů, 82/82 testů)
+✅ Fáze 13       .NET 10 LTS (net8 EOL 2026-11-10) — čeká na ověření na stagingu
 💤 Fáze 12       cleanup starých .NET Framework projektů
 ```
 
