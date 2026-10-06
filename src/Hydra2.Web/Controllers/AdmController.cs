@@ -31,7 +31,7 @@ public class AdmController : Controller
 
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Adm.Index");
+        _logger.LogInformation("Administrace: uvodni stranka");
 
         ViewBag.samplesCount = await _adminService.GetSamplesCountAsync(cancellationToken);
 
@@ -99,7 +99,7 @@ public class AdmController : Controller
                 return View();
             }
 
-            _logger.LogDebug("DownloaderType: {Type}", downloader.GetType().Name);
+            _logger.LogDebug("Typ downloaderu: {Type}", downloader.GetType().Name);
             var downloadSamples = await downloader.GetRecordsAsync(station.Link, cancellationToken);
 
             var sb = new System.Text.StringBuilder();
@@ -110,7 +110,7 @@ public class AdmController : Controller
             }
             ViewBag.Note = sb.ToString();
 
-            _logger.LogInformation("Uloženo");
+            _logger.LogInformation("Ulozeno");
         }
         catch (Exception ex)
         {
@@ -126,7 +126,7 @@ public class AdmController : Controller
     [HttpPost, ValidateAntiForgeryToken, ActionName("HandUpdate")]
     public async Task<IActionResult> HandUpdatePost(int stationId, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Ručně aktualizuji záznam s Id: {StationId}", stationId);
+        _logger.LogInformation("Rucne aktualizuji zaznam s Id: {StationId}", stationId);
         await _updateService.UpdateSpotsAsync(stationId, stationId, cancellationToken);
         return View("HandUpdate");
     }

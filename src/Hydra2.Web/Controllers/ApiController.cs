@@ -53,7 +53,7 @@ public class ApiController : Controller
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "ManualData failed for station {StationId}", stationId);
+            _logger.LogError(ex, "ManualData: chyba u stanice ID {StationId}", stationId);
             return Json($"Error {ex.Message}");
         }
     }
@@ -76,7 +76,7 @@ public class ApiController : Controller
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "UpdateNext failed");
+            _logger.LogError(ex, "UpdateNext: chyba");
             return Json($"Error {ex.Message}");
         }
     }
@@ -92,7 +92,7 @@ public class ApiController : Controller
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "GetLast failed");
+            _logger.LogError(ex, "GetLast: chyba");
             return Json($"Error {ex.Message}");
         }
     }

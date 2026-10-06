@@ -44,7 +44,7 @@ public class BasicAuthMiddleware
 
         if (string.IsNullOrEmpty(opts.Username) || string.IsNullOrEmpty(opts.Password))
         {
-            _logger.LogError("AdminAuth not configured in {Env} - blocking {Path}", _env.EnvironmentName, path);
+            _logger.LogError("AdminAuth neni v prostredi {Env} nakonfigurovan - blokuji {Path}", _env.EnvironmentName, path);
             context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
             await context.Response.WriteAsync("Admin section is not configured. Set AdminAuth:Username and AdminAuth:Password.");
             return;

@@ -50,7 +50,7 @@ public class AdminApiController : ControllerBase
 
         var previous = _levelSwitch.MinimumLevel;
         _levelSwitch.MinimumLevel = parsed;
-        _logger.LogWarning("Log level changed from {Previous} to {New} via admin API", previous, parsed);
+        _logger.LogWarning("Uroven logovani zmenena z {Previous} na {New} pres admin API", previous, parsed);
 
         return Ok(new { previous = previous.ToString(), current = parsed.ToString() });
     }

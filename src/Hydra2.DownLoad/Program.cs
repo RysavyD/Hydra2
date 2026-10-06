@@ -59,7 +59,7 @@ while (true)
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "Neočekávaná chyba při zpracování vstupu {Input}", input);
+        logger.LogError(ex, "Neocekavana chyba pri zpracovani vstupu {Input}", input);
     }
 }
 
@@ -73,7 +73,7 @@ async Task RunAsync(string input)
         using var scope = provider.CreateScope();
         var dataService = scope.ServiceProvider.GetRequiredService<IDataService>();
 
-        logger.LogInformation("Načítám stanici {StationId} z DB", stationId);
+        logger.LogInformation("Nacitam stanici {StationId} z DB", stationId);
         var station = await dataService.GetStationAsync(stationId);
         if (station is null)
         {
@@ -86,7 +86,7 @@ async Task RunAsync(string input)
 
         if (string.IsNullOrWhiteSpace(station.Link))
         {
-            logger.LogError("Stanice {StationId} nemá vyplněný Link", stationId);
+            logger.LogError("Stanice {StationId} nema vyplneny Link", stationId);
             return;
         }
 
@@ -102,7 +102,7 @@ async Task RunAsync(string input)
     }
     else
     {
-        logger.LogError("Vstup {Input} není ani číselné ID stanice, ani http(s) URL", input);
+        logger.LogError("Vstup {Input} neni ani ciselne ID stanice, ani http(s) URL", input);
         return;
     }
 
@@ -113,7 +113,7 @@ async Task RunAsync(string input)
         return;
     }
 
-    logger.LogInformation("Stahuji {Link} pomocí {Downloader}", link, downloader.GetType().Name);
+    logger.LogInformation("Stahuji {Link} pomoci {Downloader}", link, downloader.GetType().Name);
     var sw = Stopwatch.StartNew();
     IList<SpotRecord> records;
     try
@@ -122,17 +122,17 @@ async Task RunAsync(string input)
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "Stažení/parsování selhalo po {Elapsed} ms", sw.ElapsedMilliseconds);
+        logger.LogError(ex, "Stazeni/parsovani selhalo po {Elapsed} ms", sw.ElapsedMilliseconds);
         await DumpRawPageAsync(link);
         return;
     }
 
     PrintRecords(records);
-    logger.LogInformation("Hotovo za {Elapsed} ms, záznamů: {Count}", sw.ElapsedMilliseconds, records.Count);
+    logger.LogInformation("Hotovo za {Elapsed} ms, zaznamu: {Count}", sw.ElapsedMilliseconds, records.Count);
 
     if (records.Count == 0)
     {
-        logger.LogWarning("Nenačetl se žádný záznam – ukládám surovou stránku pro kontrolu");
+        logger.LogWarning("Nenacetl se zadny zaznam - ukladam surovou stranku pro kontrolu");
         await DumpRawPageAsync(link);
     }
 }
@@ -152,7 +152,7 @@ int? AskDownLoadType(int? guess)
     if (SourceCatalog.FindByName(answer) is { } byName)
         return byName.DownLoadType;
 
-    logger.LogError("Neznámý typ zdroje {Answer}", answer);
+    logger.LogError("Neznamy typ zdroje {Answer}", answer);
     return null;
 }
 
@@ -200,13 +200,13 @@ async Task DumpRawPageAsync(string link)
         await File.WriteAllBytesAsync(file, bytes);
 
         logger.LogInformation(
-            "Surová odpověď: HTTP {Status} {Reason}, Content-Type={ContentType}, {Length} B, final URL={FinalUrl}, title=\"{Title}\"",
+            "Surova odpoved: HTTP {Status} {Reason}, Content-Type={ContentType}, {Length} B, final URL={FinalUrl}, title=\"{Title}\"",
             (int)response.StatusCode, response.ReasonPhrase, response.Content.Headers.ContentType,
             bytes.Length, response.RequestMessage?.RequestUri, title);
-        logger.LogInformation("Stránka uložena do {File}", file);
+        logger.LogInformation("Stranka ulozena do {File}", file);
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "Nepodařilo se stáhnout ani surovou stránku");
+        logger.LogError(ex, "Nepodarilo se stahnout ani surovou stranku");
     }
 }

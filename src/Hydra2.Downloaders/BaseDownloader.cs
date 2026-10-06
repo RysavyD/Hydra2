@@ -29,7 +29,7 @@ public abstract class BaseDownloader : ISpotInformationDownloader
 
     public virtual async Task<IList<SpotRecord>> GetRecordsAsync(string link, CancellationToken cancellationToken = default)
     {
-        _logger.LogDebug("Downloading from {Link}", link);
+        _logger.LogDebug("Stahuji z {Link}", link);
 
         Link = link;
         var result = new List<SpotRecord>();
@@ -41,7 +41,7 @@ public abstract class BaseDownloader : ISpotInformationDownloader
         SetDecimalSeparator();
         LoadData(result);
 
-        _logger.LogDebug("Parsed {Count} samples from {Link}", result.Count, link);
+        _logger.LogDebug("Nacteno {Count} vzorku z {Link}", result.Count, link);
         return result;
     }
 
@@ -60,12 +60,15 @@ public abstract class BaseDownloader : ISpotInformationDownloader
 
     protected virtual async Task DownLoadPageAsync(CancellationToken cancellationToken)
     {
-        var response = await _httpClient.GetAsync(Link, cancellationToken);
+        using var response = await _httpClient.GetAsync(Link, cancellationToken);
         if (response.StatusCode != HttpStatusCode.OK)
         {
-            _logger.LogWarning($"Server returned {response.StatusCode} for {Link}");
-            Page = string.Empty;
-            return;
+            _logger.LogError("Server vratil HTTP {StatusCode} {Reason} pro {Link}",
+                (int)response.StatusCode, response.ReasonPhrase, Link);
+            throw new HttpRequestException(
+                $"Server vratil HTTP {(int)response.StatusCode} {response.ReasonPhrase} pro {Link}",
+                null,
+                response.StatusCode);
         }
 
         var bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken);

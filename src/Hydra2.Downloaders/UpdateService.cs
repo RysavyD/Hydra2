@@ -39,7 +39,7 @@ public class UpdateService : IUpdateService
 
         _sourceStateTracker.RecordRunStarted(downLoadType, stations.Count);
         _logger.LogInformation(
-            "Source {Source} run started ({StationCount} stations)",
+            "Zdroj {Source}: beh zahajen ({StationCount} stanic)",
             sourceName, stations.Count);
 
         var ok = 0;
@@ -65,7 +65,7 @@ public class UpdateService : IUpdateService
         _sourceStateTracker.RecordRunCompleted(downLoadType, outcome, ok, errors, samplesAdded, lastErrorMessage);
 
         _logger.LogInformation(
-            "Source {Source} run complete: outcome={Outcome}, {Ok} ok, {Errors} errors, {Samples} samples added",
+            "Zdroj {Source}: beh dokoncen, vysledek={Outcome}, {Ok} v poradku, {Errors} chyb, pridano {Samples} vzorku",
             sourceName, outcome, ok, errors, samplesAdded);
 
         return outcome;
@@ -77,7 +77,7 @@ public class UpdateService : IUpdateService
         var station = await _dataService.GetStationAsync(stationId, cancellationToken);
         if (station is null)
         {
-            _logger.LogWarning("Station {StationId} not found", stationId);
+            _logger.LogWarning("Stanice ID {StationId} nenalezena", stationId);
             return;
         }
         await UpdateStationCoreAsync(station, cancellationToken);
@@ -85,13 +85,13 @@ public class UpdateService : IUpdateService
 
     public async Task UpdateSpotsAsync(int startIndex, int stopIndex, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Manual update {Start}-{Stop} started", startIndex, stopIndex);
+        _logger.LogInformation("Rucni aktualizace stanic {Start}-{Stop} zahajena", startIndex, stopIndex);
         for (var i = startIndex; i <= stopIndex; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             await UpdateStationAsync(i, cancellationToken);
         }
-        _logger.LogInformation("Manual update {Start}-{Stop} finished", startIndex, stopIndex);
+        _logger.LogInformation("Rucni aktualizace stanic {Start}-{Stop} dokoncena", startIndex, stopIndex);
     }
 
     private async Task<(bool Ok, int SamplesAdded, string? ErrorMessage)> UpdateStationCoreAsync(Station station, CancellationToken cancellationToken)
@@ -99,34 +99,40 @@ public class UpdateService : IUpdateService
         var stationId = station.Id;
         _progressListener.OnIterationStarted(stationId);
 
+        var phase = "priprava";
+
         try
         {
-            _logger.LogDebug("Updating station {StationId} ({Spot})", stationId, station.Spot);
-
             var downloader = _downloaderFactory.GetDownloader(station.DownLoadType);
             if (downloader is null)
             {
-                _logger.LogWarning("Station {StationId} has unknown DownLoadType {Type}", stationId, station.DownLoadType);
-                return (false, 0, $"Unknown DownLoadType {station.DownLoadType}");
+                _logger.LogWarning("Stanice ID {StationId}: neznamy DownLoadType {Type}", stationId, station.DownLoadType);
+                return (false, 0, $"Neznamy DownLoadType {station.DownLoadType}");
             }
 
             if (string.IsNullOrEmpty(station.Link))
             {
-                _logger.LogWarning("Station {StationId} has empty Link", stationId);
-                return (false, 0, "Empty Link");
+                _logger.LogWarning("Stanice ID {StationId}: prazdny Link", stationId);
+                return (false, 0, "Prazdny Link");
             }
 
+            phase = "stahovani";
+            _logger.LogInformation("Stahuji stanici ID {StationId} z URL {Link}", stationId, station.Link);
             var samples = await downloader.GetRecordsAsync(station.Link, cancellationToken);
+            _logger.LogInformation("Stanice ID {StationId}: stahovani uspesne skonceno", stationId);
 
+            phase = "ukladani";
+            _logger.LogInformation("Stanice ID {StationId}: nalezeno {Found} vzorku, ukladam", stationId, samples.Count);
             var samplesAdded = 0;
             foreach (var sample in samples)
             {
                 samplesAdded += await _dataService.AddSampleAsync(
                     station.Id, sample.Level, sample.Flow, sample.Temperature, sample.TimeStamp, cancellationToken);
             }
+            _logger.LogInformation("Stanice ID {StationId}: ulozeno {Saved} vzorku", stationId, samplesAdded);
 
-            _logger.LogWarning("Station {StationId} ok, {Count} samples added", stationId, samplesAdded);
             _errorTracker.RecordSuccess(stationId);
+            _logger.LogInformation("Stanice ID {StationId} hotova", stationId);
             return (true, samplesAdded, null);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -139,14 +145,14 @@ public class UpdateService : IUpdateService
             if (withStack)
             {
                 _logger.LogWarning(ex,
-                    "Station {StationId} failed: {ExceptionType} (next stack throttled for 1h)",
-                    stationId, ex.GetType().Name);
+                    "Stanice ID {StationId}: chyba ve fazi {Phase}: {ExceptionType}: {Message} (dalsi stack trace potlacen na 1 h)",
+                    stationId, phase, ex.GetType().Name, ex.Message);
             }
             else
             {
                 _logger.LogWarning(
-                    "Station {StationId} failed: {ExceptionType}: {Message}",
-                    stationId, ex.GetType().Name, ex.Message);
+                    "Stanice ID {StationId}: chyba ve fazi {Phase}: {ExceptionType}: {Message}",
+                    stationId, phase, ex.GetType().Name, ex.Message);
             }
             return (false, 0, $"{ex.GetType().Name}: {ex.Message}");
         }

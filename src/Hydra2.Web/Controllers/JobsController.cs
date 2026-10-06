@@ -37,7 +37,7 @@ public class JobsController : ControllerBase
         var source = SourceCatalog.FindByName(name);
         if (source is null) return NotFound(new { error = $"Unknown source '{name}'", available = SourceCatalog.All.Select(s => s.Name) });
 
-        _logger.LogInformation("Manual trigger for source {Source} (downLoadType {Type})", source.Name, source.DownLoadType);
+        _logger.LogInformation("Rucni spusteni zdroje {Source} (downLoadType {Type})", source.Name, source.DownLoadType);
         var outcome = await _updateService.UpdateSourceAsync(source.DownLoadType, cancellationToken);
 
         return Ok(new { source = source.Name, outcome = outcome.ToString() });
@@ -62,7 +62,7 @@ public class JobsController : ControllerBase
             return NotFound(new { error = $"Job for source '{source.Name}' is not registered" });
 
         await scheduler.TriggerJob(jobKey, cancellationToken);
-        _logger.LogInformation("Source {Source} scheduled to run now", source.Name);
+        _logger.LogInformation("Zdroj {Source} naplanovan ke spusteni ihned", source.Name);
         return Accepted(new { source = source.Name, scheduled = true });
     }
 

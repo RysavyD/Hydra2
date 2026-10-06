@@ -110,7 +110,8 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseSerilogRequestLogging();
+app.UseSerilogRequestLogging(options =>
+    options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} odpoved {StatusCode} za {Elapsed:0.0000} ms");
 app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseHttpsRedirection();
 app.UseMiddleware<BasicAuthMiddleware>();

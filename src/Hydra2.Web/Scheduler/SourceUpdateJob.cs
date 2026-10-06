@@ -30,7 +30,7 @@ public class SourceUpdateJob : IJob
     {
         if (!context.JobDetail.JobDataMap.TryGetIntValue(DownLoadTypeKey, out var downLoadType))
         {
-            _logger.LogError("SourceUpdateJob {Key} missing JobDataMap entry '{DataKey}'",
+            _logger.LogError("SourceUpdateJob {Key}: v JobDataMap chybi polozka '{DataKey}'",
                 context.JobDetail.Key, DownLoadTypeKey);
             return;
         }
@@ -51,7 +51,7 @@ public class SourceUpdateJob : IJob
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "SourceUpdateJob {Key} failed unexpectedly",
+                "SourceUpdateJob {Key}: neocekavana chyba",
                 context.JobDetail.Key);
         }
         finally

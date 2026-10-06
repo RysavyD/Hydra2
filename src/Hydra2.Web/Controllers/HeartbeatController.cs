@@ -50,7 +50,7 @@ public class HeartbeatController : ControllerBase
         catch (Exception ex)
         {
             dbHealthy = false;
-            _logger.LogWarning(ex, "Heartbeat: failed to read config");
+            _logger.LogWarning(ex, "Heartbeat: nepodarilo se nacist konfiguraci");
         }
 
         var sources = _sourceStateTracker.GetAll();
@@ -120,7 +120,7 @@ public class HeartbeatController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to read Quartz next fire times");
+            _logger.LogWarning(ex, "Nepodarilo se nacist casy pristiho spusteni Quartz jobu");
         }
         return result;
     }
