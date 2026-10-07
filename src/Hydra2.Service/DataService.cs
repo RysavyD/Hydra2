@@ -104,8 +104,9 @@ public class DataService : IDataService
         var tableName = SampleTableName.ForStation(stationId);
 
         await using var connection = new SqlConnection(_connectionString);
-        return await connection.ExecuteAsync(new CommandDefinition(
-            $@"IF NOT EXISTS (
+        return await connection.ExecuteScalarAsync<int>(new CommandDefinition(
+            $@"SET NOCOUNT ON;
+IF NOT EXISTS (
     SELECT 1
     FROM [Hydra].[{tableName}]
     WHERE [TimeStamp] = @sampleTimeStamp
